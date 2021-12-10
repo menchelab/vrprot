@@ -51,6 +51,12 @@ Run pdb_parser.py
 
 This will fetch the pdb for P04439 from the AlphaFold DB, colorcode the secondary structure and output an .obj file cotaining the 3D model and a .png texture file.
 
+If it cannot find you Chimerax insalltion you can use the "path=" argument if you start the script, i.e.
+
+`python3 pdb_parser.py path="\"<path to your Chimerax.exe>\""`
+
+`python3 pdb_parser.py path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
+
 ### Create a Protein object with:
 
 ```
