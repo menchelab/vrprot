@@ -115,9 +115,9 @@ It will save the results as a .obj file and a .png file containing the texture.
 ```
 from blender_converter import BlenderCovert
 
-blender_parser = BlenderConvert(strucutres={
-                "P04439":"P04439.obj"},
-                textures={"P04439":"P04439.png",
+blender_parser = BlenderConvert(
+                strucutres={"P04439":"P04439.obj"},
+                textures={"P04439":"P04439.png"},
                 keepFiles=self.keepFiles)
 
 ```
