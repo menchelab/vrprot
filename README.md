@@ -42,61 +42,98 @@ openpyxl
 
 An installtion of ChimeraX
 
+An installation of Blender
 
-You can import the class Protein_structure from pdb_parser to parse a pdb file.
+You can import the class ChimeraX_processing from pdb_parser.py to parse a pdb file.
 
-## Qucikstart
+## Quickstart
 
-Run pdb_parser.py
+Run modul_Test.py
 
 This will fetch the pdb for P04439 from the AlphaFold DB, colorcode the secondary structure and output an .obj file cotaining the 3D model and a .png texture file.
 
-If it cannot find you Chimerax insalltion you can use the "path=" argument if you start the script, i.e.
+If it cannot find you Chimerax insalltion you can use the "ch_path=" argument if you start the script, e.g.
 
-`python3 pdb_parser.py path="\"<path to your Chimerax.exe>\""`
+`python3 modul_Test.py ch_path="\"<path to your Chimerax.exe>\""`
 
-`python3 pdb_parser.py path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
+`python3 modul_Test.py ch_path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
 
-### Create a Protein object with:
+Same for the Blender installtion, you can use the "bl_path=" argument if you start the script, e.g.
 
-```
-from pdb_parser import Protein_structure
+`python3 modul_Test.py bl_path="\"<path to your Blender.exe>\""`
 
-protein = Protein_structure("<UniProt ID of the Protein", proteinName="<optional: name of the Protein", keepPDB = True/False)
-
-```
-
-The keepPDB argument can be used to tell the program to not delet the PDB file after the proccessing is accomplished.
-
-### You can than fetch the pdb by using:
+## Create a Protein object with:
 
 ```
-protein.fetch_pdb()
+from pdb_parser import ChimeraX_processing
+
+pdb_parser = ChimeraX_processing(protein={"P38606":"P38606"}, keepFiles = True/False)
+
+```
+The protein dict contains all the protein structures you want to process. You can addd a new structure by using:
+```
+pdb_parser.add_protein(<UniProtID>)
 ```
 
-This will download the pdb file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs".
+The keepFiles argument can be used to tell the program to not delete pdb and glb file after the proccessing is accomplished.
 
-If the structure is not available on the AlphaFold DB it will return a Error message.
+## Fetch the pdb
 
-### You can than color the secondary structures by using:
+```
+pdb_parser.fetch_pdb(protein)
+```
+
+This will download the pdb file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs/".
+
+If the structure is not available on the AlphaFold DB it will try to download it from the RCSB database. If the strucutre is also not available here, it will report it to you.
+
+## Color the secondary structures
 
 You can define the Installtion Path to you ChimeraX installtion by using:
 
 ```
 # For Linux (standard)
-protein.ChimeraX = "chimerax"
+pdb_parser.ChimeraX = "chimerax"
 # For Windows
-protein.ChimeraX = "\"<Path to ChimeraX.exe\""
+pdb_parser.ChimeraX = "\"<Path to ChimeraX.exe\""
 # For Mac
-protein.ChimeraX = "<Path to your ChimeraX application>"
+pdb_parser.ChimeraX = "<Path to your ChimeraX application>"
 ```
 
 Than you should be able to use:
 
 ```
-protein.color_ss_chimerax(colors=["red", "green", "blue"]) # color argument is optional (Coil = "red", Helix = "gree", Strand = "blue")
+pdb_parser.color_ss_chimerax(portein,colors=["red", "green", "blue"]) # color argument is optional (Coil = "red", Helix = "green", Strand = "blue")
 ```
 
 This will open Chimerax, select the secondary structures and color them as ask.
 
 It will save the results as a .obj file and a .png file containing the texture.
+
+## Bake .obj with texture file to .fbx / .ply file
+
+```
+from blender_converter import BlenderCovert
+
+blender_parser = BlenderConvert(strucutres={"P04439":"P04439.obj"}, textures={"P04439":"P04439.png", keepFiles=self.keepFiles)
+
+```
+The structure dict contains all the .obj files protein you want to process. The texture dict contains the corresponding texture .png file. You can addd a new structure with texture by using:
+
+```
+blender_parser.add_structure(<UniProtID>, <Path to Structure>, <Path to texture>)
+```
+
+The keepFiles argument can be used to tell the program to not delete obj, png and other
+source files after the proccessing is accomplished.
+
+## Bake the .fbx / .ply file
+
+The .fbx file can not be baked by using:
+
+```
+blender_parser.cobineBake(protein)
+```
+The Output can than be found in the ./pdb/ directory.
+
+## Create the PointCloud
