@@ -115,7 +115,10 @@ It will save the results as a .obj file and a .png file containing the texture.
 ```
 from blender_converter import BlenderCovert
 
-blender_parser = BlenderConvert(strucutres={"P04439":"P04439.obj"}, textures={"P04439":"P04439.png", keepFiles=self.keepFiles)
+blender_parser = BlenderConvert(strucutres={
+                "P04439":"P04439.obj"},
+                textures={"P04439":"P04439.png",
+                keepFiles=self.keepFiles)
 
 ```
 The structure dict contains all the .obj files protein you want to process. The texture dict contains the corresponding texture .png file. You can addd a new structure with texture by using:
@@ -132,7 +135,7 @@ source files after the proccessing is accomplished.
 The .fbx file can not be baked by using:
 
 ```
-blender_parser.cobineBake(protein)
+blender_parser.combineBake(protein)
 ```
 The Output can than be found in the ./pdb/ directory.
 
