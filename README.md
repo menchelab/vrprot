@@ -39,6 +39,7 @@ requests
 pandas - only to read out excel sheet for testing
 
 openpyxl
+open3d
 
 An installtion of ChimeraX
 
