@@ -140,3 +140,6 @@ blender_parser.combineBake(protein)
 The Output can than be found in the ./pdb/ directory.
 
 ## Create the PointCloud
+run sample_pcd.py (specify name of input .ply object in code)
+This will sample a point cloud from .ply mesh and store it as .xyzrgb file.
+From this point cloud calculate bounding box (3D cube) and visualize it together with point cloud
