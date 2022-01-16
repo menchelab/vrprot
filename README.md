@@ -48,10 +48,18 @@ An installation of Blender
 You can import the class ChimeraX_processing from pdb_parser.py to parse a pdb file.
 
 ## Quickstart
+### Use the easy_pipeline.py script
+You can use the easy pipeline script to use the pdb parser and blender converter to generate .ply files from a UniprotID. Simply start the script with the -p operator:
 
-Run modul_Test.py
+`python3 easy_pipeline.py -p <your list of proteins you want to process>`
 
-This will fetch the pdb for P04439 from the AlphaFold DB, colorcode the secondary structure and output an .obj file cotaining the 3D model and a .png texture file.
+A little Example:
+
+`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5`
+
+### Run modul_Test.py
+
+This will fetch the some pdbs from the AlphaFold DB, colorcode the secondary structure and output an .obj file cotaining the 3D model and a .png texture file.
 
 If it cannot find you Chimerax insalltion you can use the "ch_path=" argument if you start the script, e.g.
 
