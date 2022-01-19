@@ -59,7 +59,7 @@ A little Example:
 
 ### Run modul_Test.py
 
-This will fetch the some pdbs from the AlphaFold DB, colorcode the secondary structure and output an .obj file cotaining the 3D model and a .png texture file.
+This will fetch the some pdbs from the AlphaFold DB, colorcode the secondary structure and output an .glb file cotaining the 3D model with vertexcolors.
 
 If it cannot find you Chimerax insalltion you can use the "ch_path=" argument if you start the script, e.g.
 
@@ -117,31 +117,30 @@ pdb_parser.color_ss_chimerax(portein,colors=["red", "green", "blue"]) # color ar
 
 This will open Chimerax, select the secondary structures and color them as ask.
 
-It will save the results as a .obj file and a .png file containing the texture.
+It will save the results as a .glb file and a .png file containing the texture.
 
-## Bake .obj with texture file to .fbx / .ply file
+## Bake .glb with texture file to .ply file
 
 ```
 from blender_converter import BlenderCovert
 
 blender_parser = BlenderConvert(
-                strucutres={"P04439":"P04439.obj"},
-                textures={"P04439":"P04439.png"},
+                strucutres={"P04439":"P04439.glb"},
                 keepFiles=self.keepFiles)
 
 ```
-The structure dict contains all the .obj files protein you want to process. The texture dict contains the corresponding texture .png file. You can addd a new structure with texture by using:
+The structure dict contains all the .glb files protein you want to process. You can addd a new structure with texture by using:
 
 ```
-blender_parser.add_structure(<UniProtID>, <Path to Structure>, <Path to texture>)
+blender_parser.add_structure(<UniProtID>, <Path to Structure>)
 ```
 
-The keepFiles argument can be used to tell the program to not delete obj, png and other
+The keepFiles argument can be used to tell the program to not delete .glb and other
 source files after the proccessing is accomplished.
 
-## Bake the .fbx / .ply file
+## Bake the .ply file
 
-The .fbx file can not be baked by using:
+The .ply file can be baked by using:
 
 ```
 blender_parser.combineBake(protein)
