@@ -147,12 +147,12 @@ blender_parser.combineBake(protein)
 ```
 The Output can than be found in the ./pdb/ directory.
 
-## Create the PointCloud
-# Requires python library open3d
+# Create the PointCloud
+## Requires python library open3d
 run sample_pcd.py (specify name of input .ply object in code). To normalize coordinates, import "Cube.ply" and Cube_no_lines.ply (.ply format of cube based on cube.fbx)
 This will sample a point cloud from .ply mesh and store it as .xyzrgb file. Scaling of protein may fail (exceed cube) for very unsymmetric proteins.
 
-## Create .png files
+# Create .png files
 The resulting point cloud from previous script is in xyzrgb format, rbg values are stored as float value between [0,1].
 To create the .png files, run run_pointcloud2map_xyzrgb.py.
 
