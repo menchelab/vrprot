@@ -1,6 +1,6 @@
 # alphafold_to_vrnetzer
 
-bringing structures created with alphafold (or .pdb files in general) to the vrnetzer visualisation platform
+Bringing structures predicted by AlphaFold (or .pdb files in general) to the VR Netzer visualization platform.
 
 # our miro board
 
@@ -9,26 +9,27 @@ https://miro.com/app/board/o9J_lrYlqHM=/
 # the ars electronica repository
 
 https://github.com/menchelab/ArsE_Blender_Python/
-Here you can find a pyhton notebook which we used for converting ascii files with coordinates to rgb (color) and xyz (postions) images for the game engine
+Here you can find a python notebook which we used for converting ASCII files with coordinates to RGB (color) and XYZ (positions) images for the game engine
 Folder with examples: https://github.com/menchelab/ArsE_Blender_Python/tree/main/ptclouds
 
 # the project board in here
 
 https://github.com/menchelab/alphafold_to_vrnetzer/projects/1
-Here we can all add to dos, issues and things that would be nice to have. I already filled in a few but of course everyone can add more if needed.
+Here we can all add to dos, issues and things that would be nice to have. I already filled in a few, but of course everyone can add more if needed.
 
 # getting started with git
 
-in general I recommend getting a graphical git client like https://desktop.github.com/ or https://www.sourcetreeapp.com/ and then you can just clone this repository and always "commit, push, pull" until you run into merge conflicts or similar.
+In general I recommend getting a graphical git client like https://desktop.github.com/ or https://www.sourcetreeapp.com/ and then you can just clone this repository and always "commit, push, pull" until you run into merge conflicts or similar.
 
 In case you are using visual studio code, git integration is also very well done there.
 
-here is a cheat sheet by git if you want to know more
+Gere is a cheat sheet by git if you want to know more
 https://education.github.com/git-cheat-sheet-education.pdf
 
-And of course you can always send a mail if you have questions or issues.
+And of course, you can always send a mail if you have questions or issues.
 
-And since I have now told you exactly what the comic says I will include it for reference: https://xkcd.com/1597/
+And since I have now told you exactly what the comic says,
+I will include it for reference: https://xkcd.com/1597/
 
 # PDB Parser
 
@@ -41,11 +42,11 @@ pandas - only to read out excel sheet for testing
 openpyxl
 open3d
 
-An installtion of ChimeraX
+An installation of ChimeraX
 
 An installation of Blender
 
-You can import the class ChimeraX_processing from pdb_parser.py to parse a pdb file.
+You can import the class ChimeraXProcessing from pdb_parser.py to parse a pdb file.
 
 ## Quickstart
 ### Use the easy_pipeline.py script
@@ -63,7 +64,7 @@ This will fetch the some pdbs from the AlphaFold DB, colorcode the secondary str
 
 If it cannot find you Chimerax insalltion you can use the "ch_path=" argument if you start the script, e.g.
 
-`python3 modul_Test.py ch_path="\"<path to your Chimerax.exe>\""`
+`python3 modul_Test.py ch_path="\"<path to your ChimeraX executable>\""`
 
 `python3 modul_Test.py ch_path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
 
@@ -74,17 +75,19 @@ Same for the Blender installtion, you can use the "bl_path=" argument if you sta
 ## Create a Protein object with:
 
 ```
-from pdb_parser import ChimeraX_processing
+from pdb_parser import ChimeraXProcessing
 
-pdb_parser = ChimeraX_processing(protein={"P38606":"P38606"}, keepFiles = True/False)
+pdb_parser = ChimeraXProcessing(protein={"P38606":"P38606"}, keepFiles = True/False)
 
 ```
-The protein dict contains all the protein structures you want to process. You can addd a new structure by using:
+The protein dict contains all the protein structures you want to process.
+You can add a new structure by using:
 ```
 pdb_parser.add_protein(<UniProtID>)
 ```
 
-The keepFiles argument can be used to tell the program to not delete pdb and glb file after the proccessing is accomplished.
+The keepFiles argument can be used, to tell the program, to not delete pdb and 
+glb file after the proccessing is accomplished.
 
 ## Fetch the pdb
 
@@ -122,9 +125,9 @@ It will save the results as a .glb file and a .png file containing the texture.
 ## Bake .glb with texture file to .ply file
 
 ```
-from blender_converter import BlenderCovert
+from blender_converter import BlenderConverter
 
-blender_parser = BlenderConvert(
+blender_parser = BlenderConverter(
                 strucutres={"P04439":"P04439.glb"},
                 keepFiles=self.keepFiles)
 
