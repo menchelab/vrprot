@@ -58,17 +58,19 @@ A little Example:
 
 `python3 easy_pipeline.py -p P08590,P38606,Q9W3H5`
 
-### Run modul_Test.py
+### Run modul_test.py
 
-This will fetch the some pdbs from the AlphaFold DB, colorcode the secondary structure and output an .glb file cotaining the 3D model with vertexcolors.
+This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
+and output .ply file containing the 3D model with vertex colors. Warning: It will process all
+.glb files contained in the glbs directory!
 
-If it cannot find you Chimerax insalltion you can use the "ch_path=" argument if you start the script, e.g.
+If it cannot find you Chimerax installation you can use the "ch_path=" argument if you start the script, e.g.
 
-`python3 modul_Test.py ch_path="\"<path to your ChimeraX executable>\""`
+`python3 modul_test.py ch_path="\"<path to your ChimeraX executable>\""`
 
-`python3 modul_Test.py ch_path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
+`python3 modul_test.py ch_path="\"F:/Program Files/ChimeraX 1.2.5/bin/ChimeraX.exe\""`
 
-Same for the Blender installtion, you can use the "bl_path=" argument if you start the script, e.g.
+Same for the Blender installation, you can use the "bl_path=" argument if you start the script, e.g.
 
 `python3 modul_Test.py bl_path="\"<path to your Blender.exe>\""`
 
@@ -112,27 +114,28 @@ pdb_parser.ChimeraX = "\"<Path to ChimeraX.exe\""
 pdb_parser.ChimeraX = "<Path to your ChimeraX application>"
 ```
 
-Than you should be able to use:
+Then you should be able to use:
 
 ```
 pdb_parser.color_ss_chimerax(portein,colors=["red", "green", "blue"]) # color argument is optional (Coil = "red", Helix = "green", Strand = "blue")
 ```
 
-This will open Chimerax, select the secondary structures and color them as ask.
+This will open Chimerax, select the secondary structures and color them as asked.
 
 It will save the results as a .glb file and a .png file containing the texture.
 
-## Bake .glb with texture file to .ply file
+## Convert .glb with colors to .ply file
 
 ```
 from blender_converter import BlenderConverter
 
 blender_parser = BlenderConverter(
-                strucutres={"P04439":"P04439.glb"},
+                structures={"P04439":"P04439.glb"},
                 keepFiles=self.keepFiles)
 
 ```
-The structure dict contains all the .glb files protein you want to process. You can addd a new structure with texture by using:
+The structure dict structures contains all the .glb files protein you want to process.
+You can addd a new structure (as .glb) by using:
 
 ```
 blender_parser.add_structure(<UniProtID>, <Path to Structure>)
@@ -141,14 +144,14 @@ blender_parser.add_structure(<UniProtID>, <Path to Structure>)
 The keepFiles argument can be used to tell the program to not delete .glb and other
 source files after the proccessing is accomplished.
 
-## Bake the .ply file
+## Export the .ply file
 
-The .ply file can be baked by using:
+The .ply file can be converted and exported by using:
 
 ```
-blender_parser.combineBake(protein)
+blender_parser.convertToPly(protein)
 ```
-The Output can than be found in the ./pdb/ directory.
+The Output can then be found in the ./plys/ directory.
 
 # Create the PointCloud
 ## Requires python library open3d
