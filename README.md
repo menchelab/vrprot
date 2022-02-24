@@ -68,7 +68,7 @@ Example:
 
 The Easy pipeline will not delete the temporal files generated during the process.
 ### Run modul_test.py
-
+#### Author: Till Pascal Oblau
 This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
 and output .ply file containing the 3D model with vertex colors. 
 Warning: It will process all .glb files contained in the glbs directory!
