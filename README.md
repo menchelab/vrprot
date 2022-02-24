@@ -47,11 +47,11 @@ An installation of Blender
 Operating systems: Linux and macOS.
 
 You can import the class ChimeraXProcessing from pdb_parser.py
-to parse a pdb file.
+to parse a PDB file.
 
 ## Quickstart
 ### Use the easy_pipeline.py script
-You can use the easy pipeline script to use the pdb parser and blender converter to generate .ply files from a UniprotID.
+You can use the easy pipeline script to use the PDB parser and Blender Converter to generate .ply files from a UniProtID.
 You have to start the script with the "-p" flag:
 
 `python3 easy_pipeline.py -p <your list of proteins you want to process>`
@@ -121,10 +121,10 @@ pdb_parser.fetch_pdb(protein)
 
 This will download the pdb file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs/".
 
-If the structure is not available on the AlphaFold DB it will try to download it from the RCSB database. If the strucutre is also not available here, it will report it to you.
+If the structure is not available on the AlphaFold DB it will try to download it from the RCSB database. If the structure is also not available here, it will report it to you.
 
 ## Color the secondary structures
-You can define the installtion Path to you ChimeraX installtion by using:
+You can define the installation Path to you ChimeraX installation by using:
 
 ```
 # For Linux (default))
@@ -162,7 +162,7 @@ blender_parser.add_structure(<UniProtID>, <Path to Structure>)
 The "keepFiles" argument can be used, to tell the program to not delete .glb and other source files after the proccessing is accomplished.
 
 ## Export the .ply file
-You can define the installtion Path to your blender installtion by using:
+You can define the installation Path to your blender installation by using:
 
 ```
 # For Linux (default))
@@ -176,7 +176,7 @@ The .ply file can be converted and exported by using:
 ```
 blender_parser.convertToPly(protein)
 ```
-The Output can then be found in the ./plys/ directory.
+The output can then be found in the ./plys/ directory.
 
 # Create the PointCloud
 #### Author: Felix Fischer
