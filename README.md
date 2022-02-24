@@ -31,27 +31,14 @@ And of course, you can always send a mail if you have questions or issues.
 And since I have now told you exactly what the comic says,
 I will include it for reference: https://xkcd.com/1597/
 
-# PDB Parser
-#### Author: Till Pascal Oblau
-## Requirements:
-requests
-
-pandas - only to read out excel sheet for testing
-
-openpyxl - only to read out excel sheet for testing
-
-An installation of ChimeraX
-
-An installation of Blender
-
-Operating systems: Linux and macOS.
-
-You can import the class ChimeraXProcessing from pdb_parser.py
-to parse a PDB file.
-
-## Quickstart
+# Quickstart
+#### Authors: Felix Fischer and Till Pascal Oblau
 ### Use the easy_pipeline.py script
-You can use the easy pipeline script to use the PDB parser and Blender Converter to generate .ply files from a UniProtID.
+You can use the easy pipeline script to use the PDB parser and Blender Converter
+to generate .ply files from a UniProtID. These PLY files will then be used to
+sample a Point Cloud. As final output two PNG files are generated, containing
+the RGB and XYZ values of the points in the Point cloud.
+
 You have to start the script with the "-p" flag:
 
 `python3 easy_pipeline.py -p <your list of proteins you want to process>`
@@ -79,6 +66,7 @@ Example:
 
 `python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
 
+The Easy pipeline will not delete the temporal files generated during the process.
 ### Run modul_test.py
 
 This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
@@ -97,6 +85,24 @@ Same for the Blender installation, you can use the "bl_path=" argument if you st
 `python3 modul_Test.py -bl_path="<path to your Blender executable>"`
 
 `python3 modul_test.py -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
+
+# PDB Parser
+#### Author: Till Pascal Oblau
+## Requirements:
+requests
+
+pandas - only to read out excel sheet for testing
+
+openpyxl - only to read out excel sheet for testing
+
+An installation of ChimeraX
+
+An installation of Blender
+
+Operating systems: Linux and macOS.
+
+You can import the class ChimeraXProcessing from pdb_parser.py
+to parse a PDB file.
 
 ## Create a Protein object with:
 ```
