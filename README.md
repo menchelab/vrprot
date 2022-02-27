@@ -59,7 +59,7 @@ Same for the Blender installation, you can use the "bl_path=" argument if you st
 #### Author: Till Pascal Oblau
 ## Requirements:
 ### Python modules
-- requests
+ - requests
 
  - pypng
 
@@ -81,7 +81,7 @@ to parse a PDB file.
 ```
 from pdb_parser import ChimeraXProcessing
 
-pdb_parser = ChimeraXProcessing(protein={"P38606":"P38606"}, keepFiles = True/False)
+pdb_parser = ChimeraXProcessing(protein={"P38606":"P38606"}, keepFiles = <True/False>)
 
 ```
 The protein dictionary contains all the protein structures you want to process.
@@ -138,7 +138,8 @@ You can add a new structure (as path to a .glb file ) by using:
 blender_parser.add_structure(<UniProtID>, <Path to Structure>)
 ```
 
-The "keepFiles" argument can be used, to tell the program to not delete .glb and other source files after the proccessing is accomplished.
+The "keepFiles" argument can be used, to tell the program to not delete .glb and other source files after the proccessing is accomplished.<br>
+The output can then be found in the "./glbs/ "directory.
 
 ## Export the .ply file
 You can define the installation Path to your blender installation by using:
