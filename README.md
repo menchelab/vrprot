@@ -1,36 +1,5 @@
 # alphafold_to_vrnetzer
 
-Bringing structures predicted by AlphaFold (or .pdb files in general) to the VR Netzer visualization platform.
-
-# our miro board
-
-https://miro.com/app/board/o9J_lrYlqHM=/
-
-# the ars electronica repository
-
-https://github.com/menchelab/ArsE_Blender_Python/
-Here you can find a python notebook which we used for converting ASCII files with coordinates to RGB (color) and XYZ (positions) images for the game engine
-Folder with examples: https://github.com/menchelab/ArsE_Blender_Python/tree/main/ptclouds
-
-# the project board in here
-
-https://github.com/menchelab/alphafold_to_vrnetzer/projects/1
-Here we can all add to dos, issues and things that would be nice to have. I already filled in a few, but of course everyone can add more if needed.
-
-# getting started with git
-
-In general I recommend getting a graphical git client like https://desktop.github.com/ or https://www.sourcetreeapp.com/ and then you can just clone this repository and always "commit, push, pull" until you run into merge conflicts or similar.
-
-In case you are using visual studio code, git integration is also very well done there.
-
-Gere is a cheat sheet by git if you want to know more
-https://education.github.com/git-cheat-sheet-education.pdf
-
-And of course, you can always send a mail if you have questions or issues.
-
-And since I have now told you exactly what the comic says,
-I will include it for reference: https://xkcd.com/1597/
-
 # Quickstart
 #### Authors: Felix Fischer and Till Pascal Oblau
 ### Use the easy_pipeline.py script
@@ -89,17 +58,21 @@ Same for the Blender installation, you can use the "bl_path=" argument if you st
 # PDB Parser
 #### Author: Till Pascal Oblau
 ## Requirements:
-requests
+### Python modules
+- requests
 
-pandas - only to read out excel sheet for testing
+ - pypng
 
-openpyxl - only to read out excel sheet for testing
+ - pandas - only to read out excel sheet for testing
 
-An installation of ChimeraX
+ - openpyxl - only to read out excel sheet for testing
 
-An installation of Blender
+#### Other requirments
+ - An installation of ChimeraX
 
-Operating systems: Linux and macOS.
+ - An installation of Blender
+
+ - Operating systems: Linux and macOS.
 
 You can import the class ChimeraXProcessing from pdb_parser.py
 to parse a PDB file.
@@ -117,20 +90,20 @@ You can add a new structure by using:
 pdb_parser.add_protein(<UniProtID>)
 ```
 
-The keepFiles argument can be used, to tell the program, to not delete pdb and 
-glb file after the proccessing is accomplished.
+The keepFiles argument can be used, to tell the program, to not delete PDB and 
+GLB file after the proccessing is accomplished.
 
-## Fetch the pdb
+## Fetch the PDB
 ```
 pdb_parser.fetch_pdb(protein)
 ```
 
-This will download the pdb file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs/".
+This will download the PDB file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs/".
 
 If the structure is not available on the AlphaFold DB it will try to download it from the RCSB database. If the structure is also not available here, it will report it to you.
 
 ## Color the secondary structures
-You can define the installation Path to you ChimeraX installation by using:
+You can define the installation Path to your ChimeraX installation by using:
 
 ```
 # For Linux (default))
