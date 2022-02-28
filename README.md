@@ -159,13 +159,17 @@ blender_parser.convertToPly(protein)
 The output can then be found in the ./plys/ directory.
 
 # Create the PointCloud
+# sample_pointcloud.py
 #### Author: Felix Fischer
-## Requires python library open3d
-run sample_pcd.py (specify name of input .ply object in code). To normalize coordinates, import "Cube.ply" and Cube_no_lines.ply (.ply format of cube based on cube.fbx)
-This will sample a point cloud from .ply mesh and store it as .xyzrgb file. Scaling of protein may fail (exceed cube) for very unsymmetric proteins.
+## Requires python library open3d, os
+## Requires "Cube_no_lines.ply" in base folder of script.
+This script will import the protein mesh and the mesh "Cube_no_lines.ply". The cube mesh (based on "Cube.fbx") is used for normalization of coordinate space of protein-mesh.
+The resulting point cloud (1048576 points sampled) is stored as ASCII file in /ASCII_clouds (will create folder if it does not exist).
 
 # Create .png files
+# pointcloud2map
 #### Author: Felix Fischer
-The resulting point cloud from previous script is in xyzrgb format, rbg values are stored as float value between [0,1].
-To create the .png files, run run_pointcloud2map_xyzrgb.py.
+This script opens ASCII cloud of protein and stores xyz coordinates and rgb value for each point in point cloud in a seperate matrix, which is then converted in to
+two PNG files of size 1024x1024, stored in /MAPS/xyz and /MAPS/rgb.
+
 
