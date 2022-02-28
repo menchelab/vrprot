@@ -161,7 +161,7 @@ The output can then be found in the ./plys/ directory.
 # Create the PointCloud
 # sample_pointcloud.py
 #### Author: Felix Fischer
-## Requires python library open3d, os
+## Requires python library open3d
 ## Requires "Cube_no_lines.ply" in base folder of script.
 This script will import the protein mesh and the mesh "Cube_no_lines.ply". The cube mesh (based on "Cube.fbx") is used for normalization of coordinate space of protein-mesh.
 The resulting point cloud (1048576 points sampled) is stored as ASCII file in /ASCII_clouds (will create folder if it does not exist).
@@ -169,6 +169,7 @@ The resulting point cloud (1048576 points sampled) is stored as ASCII file in /A
 # Create .png files
 # pointcloud2map
 #### Author: Felix Fischer
+## Requires python library png, numpy
 This script opens ASCII cloud of protein and stores xyz coordinates and rgb value for each point in point cloud in a seperate matrix, which is then converted in to
 two PNG files of size 1024x1024, stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
 
