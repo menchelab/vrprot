@@ -170,6 +170,6 @@ The resulting point cloud (1048576 points sampled) is stored as ASCII file in /A
 # pointcloud2map
 #### Author: Felix Fischer
 This script opens ASCII cloud of protein and stores xyz coordinates and rgb value for each point in point cloud in a seperate matrix, which is then converted in to
-two PNG files of size 1024x1024, stored in /MAPS/xyz and /MAPS/rgb.
+two PNG files of size 1024x1024, stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
 
 
