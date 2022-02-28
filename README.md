@@ -173,5 +173,5 @@ This script will import the protein mesh (requires uniport ID of protein as inpu
 # Create .png files
 # pointcloud2map
 #### Author: Felix Fischer
-## Requires python library png, numpy
+## Requires python library PyPNG, numpy
 This script opens the ASCII cloud of protein (requires uniport ID of protein as input) from ASCII_clouds foler, reads and stores the xyz coordinates and rgb value for each point in the point cloud in a seperate matrix, which is then converted in to two PNG files of size 1024x1024. The resulting PNG maps are stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
