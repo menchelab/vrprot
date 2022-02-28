@@ -163,14 +163,10 @@ The output can then be found in the ./plys/ directory.
 #### Author: Felix Fischer
 ## Requires python library open3d
 ## Requires "Cube_no_lines.ply" in base folder of script.
-This script will import the protein mesh and the mesh "Cube_no_lines.ply". The cube mesh (based on "Cube.fbx") is used for normalization of coordinate space of protein-mesh.
-The resulting point cloud (1048576 points sampled) is stored as ASCII file in /ASCII_clouds (will create folder if it does not exist).
+This script will import the protein mesh (requires uniport ID of protein as input) and the mesh "Cube_no_lines.ply". The cube mesh (based on "Cube.fbx") is used for normalization of coordinate space of protein-mesh. The protein-mesh will be translated to the center coordinates of the cube-mesh and scaled to approximately the size of the cube-mesh. The two meshes will then be merged and a point cloud is sampled (1048576 points sampled) and stored as ASCII file in /ASCII_clouds (will create folder if it does not exist).
 
 # Create .png files
 # pointcloud2map
 #### Author: Felix Fischer
 ## Requires python library png, numpy
-This script opens ASCII cloud of protein and stores xyz coordinates and rgb value for each point in point cloud in a seperate matrix, which is then converted in to
-two PNG files of size 1024x1024, stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
-
-
+This script opens the ASCII cloud of protein (requires uniport ID of protein as input) from ASCII_clouds foler, reads and stores the xyz coordinates and rgb value for each point in the point cloud in a seperate matrix, which is then converted in to two PNG files of size 1024x1024. The resulting PNG maps are stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
