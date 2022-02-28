@@ -2,6 +2,27 @@
 
 # Quickstart
 #### Authors: Felix Fischer and Till Pascal Oblau
+## Requirements:
+### Python modules
+ - requests
+
+ - pypng
+
+ - open3d
+
+ - numpy
+
+ - pandas - only to read out excel sheet for testing
+
+ - openpyxl - only to read out excel sheet for testing
+
+#### Other requirments
+ - An installation of ChimeraX
+
+ - An installation of Blender
+
+ - Operating systems: Linux and macOS.
+
 ### Use the easy_pipeline.py script
 You can use the easy pipeline script to use the PDB parser and Blender Converter
 to generate .ply files from a UniProtID. These PLY files will then be used to
@@ -57,22 +78,6 @@ Same for the Blender installation, you can use the "bl_path=" argument if you st
 
 # PDB Parser
 #### Author: Till Pascal Oblau
-## Requirements:
-### Python modules
- - requests
-
- - pypng
-
- - pandas - only to read out excel sheet for testing
-
- - openpyxl - only to read out excel sheet for testing
-
-#### Other requirments
- - An installation of ChimeraX
-
- - An installation of Blender
-
- - Operating systems: Linux and macOS.
 
 You can import the class ChimeraXProcessing from pdb_parser.py
 to parse a PDB file.
