@@ -12,10 +12,6 @@
 
  - numpy
 
- - pandas - only to read out excel sheet for testing
-
- - openpyxl - only to read out excel sheet for testing
-
 #### Other requirments
  - An installation of ChimeraX
 
@@ -59,6 +55,12 @@ Example:
 The Easy pipeline will not delete the temporal files generated during the process.
 ### Run modul_test.py
 #### Author: Till Pascal Oblau<br>
+#### Requirments
+
+ - pandas - only to read out excel sheet for testing
+
+ - openpyxl - only to read out excel sheet for testing
+
 This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
 and output .ply file containing the 3D model with vertex colors. 
 Warning: It will process all .glb files contained in the glbs directory!
@@ -128,6 +130,9 @@ This will open Chimerax, select the secondary structures and color them as asked
 It will save the results as a .glb file.
 
 ## Convert .glb with colors to .ply file
+You can import the class BlenderCoverter from blender_converter.py
+to parse a convert .glb files to .ply files.
+
 ```
 from blender_converter import BlenderConverter
 
