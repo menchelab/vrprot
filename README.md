@@ -12,10 +12,12 @@
 
  - numpy
 
+ - trimesh
+
 #### Other requirments
  - An installation of ChimeraX
 
- - An installation of Blender
+ - (An installation of Blender)(Not with the new easy pipeline)
 
  - Operating systems: Linux and macOS.
 
@@ -43,6 +45,7 @@ Example:
 
 `python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -ch_path="/Applications/ChimeraX-1.3-rc2021.12.01.app/Contents/MacOS/ChimeraX"`
 
+#### TODO remove this section as blender is not used anymore in the easy pipeline
 With the "-bl_path=" flag you can define your Blender
 execution path.
 
@@ -53,6 +56,7 @@ Example:
 `python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
 
 The Easy pipeline will not delete the temporal files generated during the process.
+
 ### Run modul_test.py
 #### Author: Till Pascal Oblau<br>
 #### Requirments
@@ -130,6 +134,16 @@ This will open Chimerax, select the secondary structures and color them as asked
 It will save the results as a .glb file.
 
 ## Convert .glb with colors to .ply file
+
+To convert a GLB file to PLY you can use the convertGLBToPLY function of the
+ChimeraXProcessing class. You can simply call the function together with the
+UniProtID of the respective protein. You can then use:
+```
+pdb_parser.convertGLPToPly(<UniProtID>)
+```
+This will convert the GLB file, which has been processed beforehand,
+to a PLY file.
+#### TODO Remove this part as Blender is not used anymore in the easy pipeline 
 You can import the class BlenderCoverter from blender_converter.py
 to parse a convert .glb files to .ply files.
 
