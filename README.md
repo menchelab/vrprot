@@ -19,13 +19,13 @@
 
  - Operating systems: Linux and macOS.
 ### Process a single structure
-```./main.py fetch O95352```
+```./main.py fetch O95352```<br>
 This will fetch the structure of O95352 from the AlphaFold database and
 processes it using the pipeline. As coloring the secondary structures are
 colored in red, green and blue.
 
 ### Get help
-To get an overview of the available commands, use the `--help` command.
+To get an overview of the available commands, use the `--help` command.<br>
 ```./main.py --help```
 
 # PDB Parser
