@@ -17,70 +17,16 @@
 #### Other requirments
  - An installation of ChimeraX
 
- - (An installation of Blender)(Not with the new easy pipeline)
-
  - Operating systems: Linux and macOS.
+### Process a single structure
+```./main.py fetch O95352```
+This will fetch the structure of O95352 from the AlphaFold database and
+processes it using the pipeline. As coloring the secondary structures are
+colored in red, green and blue.
 
-### Use the easy_pipeline.py script
-You can use the easy pipeline script to use the PDB parser and Blender Converter
-to generate .ply files from a UniProtID. These PLY files will then be used to
-sample a Point Cloud. As final output two PNG files are generated, containing
-the RGB and XYZ values of the points in the Point cloud.
-
-You have to start the script with the "-p" flag:
-
-`python3 easy_pipeline.py -p <your list of proteins you want to process>`
-
-A little Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5`
-
-If your ChimeraX or Blender installation can not be found, you can define 
-the execution paths for your system. With the use of the "-ch_path="
-flag you can define your ChimeraX execution path. 
-
-Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -ch_path="<path to your ChimeraX executable>"`
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -ch_path="/Applications/ChimeraX-1.3-rc2021.12.01.app/Contents/MacOS/ChimeraX"`
-
-#### TODO remove this section as blender is not used anymore in the easy pipeline
-With the "-bl_path=" flag you can define your Blender
-execution path.
-
-Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="<path to your Blender executable>"`
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
-
-The Easy pipeline will not delete the temporal files generated during the process.
-
-### Run modul_test.py
-#### Author: Till Pascal Oblau<br>
-#### Requirments
-
- - pandas - only to read out excel sheet for testing
-
- - openpyxl - only to read out excel sheet for testing
-
-This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
-and output .ply file containing the 3D model with vertex colors. 
-Warning: It will process all .glb files contained in the glbs directory!
-
-If it cannot find your ChimeraX installation, you can use the 
-"ch_path=" argument if you start the script, e.g.
-
-`python3 modul_test.py -ch_path="<path to your ChimeraX executable>"`
-
-`python3 modul_test.py -ch_path="/Applications/ChimeraX-1.3-rc2021.12.01.app/Contents/MacOS/ChimeraX"`
-
-Same for the Blender installation, you can use the "bl_path=" argument if you start the script, e.g.
-
-`python3 modul_Test.py -bl_path="<path to your Blender executable>"`
-
-`python3 modul_test.py -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
+### Get help
+To get an overview of the available commands, use the `--help` command.
+```./main.py --help```
 
 # PDB Parser
 #### Author: Till Pascal Oblau
