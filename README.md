@@ -3,10 +3,11 @@
 # Quickstart
 #### Authors: Felix Fischer and Till Pascal Oblau
 ## Requirements:
-### Python modules
+ - Python 3.9 +
+### Python external modules
  - requests
 
- - pypng
+ - ~~pypng~~ --> PIL
 
  - open3d
 
@@ -14,73 +15,138 @@
 
  - trimesh
 
+ - pandas
+
 #### Other requirments
  - An installation of ChimeraX
 
- - (An installation of Blender)(Not with the new easy pipeline)
-
  - Operating systems: Linux and macOS.
+### Process a single structure
+```./main.py fetch <UniProtID```<br>
+example:<br>
+```./main.py fetch O95352```<br>
+This will fetch the structure of O95352 from the AlphaFold database and
+processes it using the pipeline. As coloring the secondary structures are
+colored in red, green and blue.
+### Process multiple structures
+```./main.py fetch <list_separated_by_comma>```<br>
+example:<br>
+```./main.py fetch O95352,Q9Y5M8,Q9UKX5```<br>
+This will fetch the structure of O95352, Q9Y5M8 and Q9UKX5 from the AlphaFold
+database and processes them using the pipeline. As coloring the secondary structures are
+colored in red, green and blue.
+### Process from a python list of proteins
+```./main.py list <path_to_python_file> <line_of_the_list>```
+<br>
+example:<br>
+```./main.py list ./missing.py 1```
+<br>
+Works like the previous command, but the python list is read from a file.
+### Process from local PDB files
+```./main.py local <path_to_directory>```<br>
+example:<br>
+```./main.py local /User/Documents/pdb_files```<br>
+This will process all structures in this directory. If there are only PDB files
+in this directory, for all of them the complete pipeline will be executed. It is also possible to
+have a directory containing intermediate states like PLY files.
+For these structures the process will start at the corresponding step.
+### Get help
+To get an overview of the available commands, use the `--help` command.<br>
+```./main.py --help```
+### Usage and flags
+```./main.py [optional arguments] <command> (positional arguments)```<br>
+```
+usage: main.py [-h] [-pdb_file [PDB_DIRECTORY]] [-glb_file [GLB_DIRECTORY]] [-ply_file [PLY_DIRECTORY]] [-cloud [PCD_DIRECTORY]]
+               [-map [MAP_DIRECTORY]] [-alphafold_version [{v1,v2}]] [-batch_size [BATCH_SIZE]] [-keep_pdb [{True,False}]]
+               [-keep_glb [{True,False}]] [-keep_ply [{True,False}]] [-keep_ascii [{True,False}]] [-chimerax [CHIMERAX_EXEC]]
+               [-color_mode [CM]]
+               {fetch,local,list,clear} ...
 
-### Use the easy_pipeline.py script
-You can use the easy pipeline script to use the PDB parser and Blender Converter
-to generate .ply files from a UniProtID. These PLY files will then be used to
-sample a Point Cloud. As final output two PNG files are generated, containing
-the RGB and XYZ values of the points in the Point cloud.
+positional arguments:
+  {fetch,local,list,clear}
+                        mode
+    fetch               Fetch proteins from the Alphafold database.
+    local               Process proteins from files (.pdb, .glb, .ply, .xyzrgb) in a directory.
+    list                Process proteins from a python list of paths to PDB files.
+    clear               Removes the processing_files directory
 
-You have to start the script with the "-p" flag:
+optional arguments:
+  -h, --help            show this help message and exit
+  -pdb_file [PDB_DIRECTORY], --pdb [PDB_DIRECTORY]
+                        Defines, where to save the PDB Files.
+  -glb_file [GLB_DIRECTORY], --glb [GLB_DIRECTORY]
+                        Defines, where to save the GLB Files.
+  -ply_file [PLY_DIRECTORY], --ply [PLY_DIRECTORY]
+                        Defines, where to save the PLY Files.
+  -cloud [PCD_DIRECTORY], --pcd [PCD_DIRECTORY]
+                        Defines, where to save the ASCII point clouds.
+  -map [MAP_DIRECTORY], --m [MAP_DIRECTORY]
+                        Defines, where to save the color maps.
+  -alphafold_version [{v1,v2}], --av [{v1,v2}]
+                        Defines, which version of Alphafold to use.
+  -batch_size [BATCH_SIZE], --bs [BATCH_SIZE]
+                        Defines the size of the batch which will be processed
+  -keep_pdb [{True,False}], -kpdb [{True,False}]
+                        Define whether to still keep the PDB files after the GLB file is created. Default is True.
+  -keep_glb [{True,False}], -kglb [{True,False}]
+                        Define whether to still keep the GLB files after the PLY file is created. Default is False.
+  -keep_ply [{True,False}], -kply [{True,False}]
+                        Define whether to still keep the PLY files after the ASCII file is created. Default is False.
+  -keep_ascii [{True,False}], -kasc [{True,False}]
+                        Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.
+  -chimerax [CHIMERAX_EXEC], --ch [CHIMERAX_EXEC]
+                        Defines, where to find the ChimeraX executable.
+  -color_mode [CM], --cm [CM]
+                        Defines the coloring mode which will be used to color the structure. Choices: cartoons_ss_coloring,
+                        cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring, cartoons_chain_coloring... . For
+                        a full list, see README.
+```
 
-`python3 easy_pipeline.py -p <your list of proteins you want to process>`
-
-A little Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5`
-
-If your ChimeraX or Blender installation can not be found, you can define 
-the execution paths for your system. With the use of the "-ch_path="
-flag you can define your ChimeraX execution path. 
-
-Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -ch_path="<path to your ChimeraX executable>"`
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -ch_path="/Applications/ChimeraX-1.3-rc2021.12.01.app/Contents/MacOS/ChimeraX"`
-
-#### TODO remove this section as blender is not used anymore in the easy pipeline
-With the "-bl_path=" flag you can define your Blender
-execution path.
-
-Example:
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="<path to your Blender executable>"`
-
-`python3 easy_pipeline.py -p P08590,P38606,Q9W3H5 -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
-
-The Easy pipeline will not delete the temporal files generated during the process.
-
-### Run modul_test.py
-#### Author: Till Pascal Oblau<br>
-#### Requirments
-
- - pandas - only to read out excel sheet for testing
-
- - openpyxl - only to read out excel sheet for testing
-
-This will fetch some pdbs from the AlphaFold DB, color code the secondary structure 
-and output .ply file containing the 3D model with vertex colors. 
-Warning: It will process all .glb files contained in the glbs directory!
-
-If it cannot find your ChimeraX installation, you can use the 
-"ch_path=" argument if you start the script, e.g.
-
-`python3 modul_test.py -ch_path="<path to your ChimeraX executable>"`
-
-`python3 modul_test.py -ch_path="/Applications/ChimeraX-1.3-rc2021.12.01.app/Contents/MacOS/ChimeraX"`
-
-Same for the Blender installation, you can use the "bl_path=" argument if you start the script, e.g.
-
-`python3 modul_Test.py -bl_path="<path to your Blender executable>"`
-
-`python3 modul_test.py -bl_path="/Applications/Blender.app/Contents/MacOS/Blender"`
+## Possible Color Modes
+```
+cartoons_ss_coloring
+cartoons_rainbow_coloring
+cartoons_heteroatom_coloring
+cartoons_polymer_coloring
+cartoons_chain_coloring
+cartoons_bFactor_coloring
+cartoons_nucleotide_coloring
+surface_ss_cooloring
+surface_rainbow_cooloring
+surface_heteroatom_cooloring
+surface_polymer_cooloring
+surface_chain_cooloring
+surface_electrostatic_coloring
+surface_hydrophic_coloring
+surface_bFactor_coloring
+surface_nucleotide_coloring
+stick_ss_coloring
+stick_rainbow_coloring
+stick_heteroatom_coloring
+stick_polymer_coloring
+stick_chain_coloring
+stick_bFactor_coloring
+stick_nucleotide_coloring
+ball_ss_coloring
+ball_rainbow_coloring
+ball_heteroatom_coloring
+ball_polymer_coloring
+ball_chain_coloring
+ball_bFactor_coloring
+ball_nucleotide_coloring
+sphere_ss_coloring
+sphere_rainbow_coloring
+sphere_heteroatom_coloring
+sphere_polymer_coloring
+sphere_chain_coloring
+sphere_bFactor_coloring
+sphere_nucleotide_coloring
+```
+-----------------
+-----------------
+# ***DEPRECATED***
+-----------------
+-----------------
 
 # PDB Parser
 #### Author: Till Pascal Oblau
@@ -102,7 +168,7 @@ pdb_parser.add_protein(<UniProtID>)
 ```
 
 The keepFiles argument can be used, to tell the program, to not delete PDB and 
-GLB file after the proccessing is accomplished.
+GLB file after the processing is accomplished.
 
 ## Fetch the PDB
 ```
@@ -143,44 +209,6 @@ pdb_parser.convertGLPToPly(<UniProtID>)
 ```
 This will convert the GLB file, which has been processed beforehand,
 to a PLY file.
-#### TODO Remove this part as Blender is not used anymore in the easy pipeline 
-You can import the class BlenderCoverter from blender_converter.py
-to parse a convert .glb files to .ply files.
-
-```
-from blender_converter import BlenderConverter
-
-blender_parser = BlenderConverter(
-                structures={"P04439":"P04439.glb"},
-                keepFiles=self.keepFiles)
-
-```
-The structure dictionary called "structures" contains all the path to the .glb files of the proteins you want to process.
-You can add a new structure (as path to a .glb file ) by using:
-
-```
-blender_parser.add_structure(<UniProtID>, <Path to Structure>)
-```
-
-The "keepFiles" argument can be used, to tell the program to not delete .glb and other source files after the proccessing is accomplished.<br>
-The output can then be found in the "./glbs/ "directory.
-
-## Export the .ply file
-You can define the installation Path to your blender installation by using:
-
-```
-# For Linux (default))
-blender_parser.blender = "blender"
-# For Mac
-blender_parser.blender = "/Applications/Blender.app/Contents/MacOS/Blender"
-```
-
-The .ply file can be converted and exported by using:
-
-```
-blender_parser.convertToPly(protein)
-```
-The output can then be found in the ./plys/ directory.
 
 # Create the PointCloud
 # sample_pointcloud.py
