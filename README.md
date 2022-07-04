@@ -3,10 +3,11 @@
 # Quickstart
 #### Authors: Felix Fischer and Till Pascal Oblau
 ## Requirements:
-### Python modules
+ - Python 3.9 +
+### Python external modules
  - requests
 
- - pypng
+ - ~~pypng~~ --> PIL
 
  - open3d
 
@@ -14,16 +15,41 @@
 
  - trimesh
 
+ - pandas
+
 #### Other requirments
  - An installation of ChimeraX
 
  - Operating systems: Linux and macOS.
 ### Process a single structure
+```./main.py fetch <UniProtID```<br>
+example:<br>
 ```./main.py fetch O95352```<br>
 This will fetch the structure of O95352 from the AlphaFold database and
 processes it using the pipeline. As coloring the secondary structures are
 colored in red, green and blue.
-
+### Process multiple structures
+```./main.py fetch <list_separated_by_comma>```<br>
+example:<br>
+```./main.py fetch O95352,Q9Y5M8,Q9UKX5```<br>
+This will fetch the structure of O95352, Q9Y5M8 and Q9UKX5 from the AlphaFold
+database and processes them using the pipeline. As coloring the secondary structures are
+colored in red, green and blue.
+### Process from a python list of proteins
+```./main.py list <path_to_python_file> <line_of_the_list>```
+<br>
+example:<br>
+```./main.py list ./missing.py 1```
+<br>
+Works like the previous command, but the python list is read from a file.
+### Process from local PDB files
+```./main.py local <path_to_directory>```<br>
+example:<br>
+```./main.py local /User/Documents/pdb_files```<br>
+This will process all structures in this directory. If there are only PDB files
+in this directory, for all of them the complete pipeline will be executed. It is also possible to
+have a directory containing intermediate states like PLY files.
+For these structures the process will start at the corresponding step.
 ### Get help
 To get an overview of the available commands, use the `--help` command.<br>
 ```./main.py --help```
