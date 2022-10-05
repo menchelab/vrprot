@@ -1,60 +1,76 @@
 # alphafold_to_vrnetzer
 
 # Quickstart
+
 #### Authors: Felix Fischer and Till Pascal Oblau
-## Requirements:
- - Python 3.9 +
-### Python external modules
- - requests
 
- - ~~pypng~~ --> PIL
+#### Software/OS requirements
 
- - open3d
+- An installation of ChimeraX
 
- - numpy
+- Operating systems: Linux and macOS.
 
- - trimesh
+### Installation
 
- - pandas
+Tested with Python 3.9+ .
 
-#### Other requirments
- - An installation of ChimeraX
+Install the package e.g. in a virtual environment:
 
- - Operating systems: Linux and macOS.
+- create a virtual environment<br>
+  `python3 -m venv name_of_env`
+- activate it<br>
+  `source name_of_env/bin/activate`
+- install requirements packages<br>
+  `python3 -m pip install -r requirements.txt`
+- install alphafold_to_vrnetzer<br>
+  `TODO`
+
 ### Process a single structure
-```./main.py fetch <UniProtID```<br>
+
+`./main.py fetch <UniProtID`<br>
 example:<br>
-```./main.py fetch O95352```<br>
+`./main.py fetch O95352`<br>
 This will fetch the structure of O95352 from the AlphaFold database and
 processes it using the pipeline. As coloring the secondary structures are
 colored in red, green and blue.
+
 ### Process multiple structures
-```./main.py fetch <list_separated_by_comma>```<br>
+
+`./main.py fetch <list_separated_by_comma>`<br>
 example:<br>
-```./main.py fetch O95352,Q9Y5M8,Q9UKX5```<br>
+`./main.py fetch O95352,Q9Y5M8,Q9UKX5`<br>
 This will fetch the structure of O95352, Q9Y5M8 and Q9UKX5 from the AlphaFold
 database and processes them using the pipeline. As coloring the secondary structures are
 colored in red, green and blue.
+
 ### Process from a python list of proteins
-```./main.py list <path_to_python_file> <line_of_the_list>```
+
+`./main.py list <path_to_python_file> <line_of_the_list>`
 <br>
 example:<br>
-```./main.py list ./missing.py 1```
+`./main.py list ./missing.py 1`
 <br>
 Works like the previous command, but the python list is read from a file.
+
 ### Process from local PDB files
-```./main.py local <path_to_directory>```<br>
+
+`./main.py local <path_to_directory>`<br>
 example:<br>
-```./main.py local /User/Documents/pdb_files```<br>
+`./main.py local /User/Documents/pdb_files`<br>
 This will process all structures in this directory. If there are only PDB files
 in this directory, for all of them the complete pipeline will be executed. It is also possible to
 have a directory containing intermediate states like PLY files.
 For these structures the process will start at the corresponding step.
+
 ### Get help
+
 To get an overview of the available commands, use the `--help` command.<br>
-```./main.py --help```
+`./main.py --help`
+
 ### Usage and flags
-```./main.py [optional arguments] <command> (positional arguments)```<br>
+
+`./main.py [optional arguments] <command> (positional arguments)`<br>
+
 ```
 usage: main.py [-h] [-pdb_file [PDB_DIRECTORY]] [-glb_file [GLB_DIRECTORY]] [-ply_file [PLY_DIRECTORY]] [-cloud [PCD_DIRECTORY]]
                [-map [MAP_DIRECTORY]] [-alphafold_version [{v1,v2}]] [-batch_size [BATCH_SIZE]] [-keep_pdb [{True,False}]]
@@ -103,6 +119,7 @@ optional arguments:
 ```
 
 ## Possible Color Modes
+
 ```
 cartoons_ss_coloring
 cartoons_rainbow_coloring
@@ -142,35 +159,45 @@ sphere_chain_coloring
 sphere_bFactor_coloring
 sphere_nucleotide_coloring
 ```
------------------
------------------
-# ***DEPRECATED***
------------------
------------------
+
+---
+
+---
+
+# **_DEPRECATED_**
+
+---
+
+---
 
 # PDB Parser
+
 #### Author: Till Pascal Oblau
 
 You can import the class ChimeraXProcessing from pdb_parser.py
 to parse a PDB file.
 
 ## Create a Protein object with:
+
 ```
 from pdb_parser import ChimeraXProcessing
 
 pdb_parser = ChimeraXProcessing(protein={"P38606":"P38606"}, keepFiles = <True/False>)
 
 ```
+
 The protein dictionary contains all the protein structures you want to process.
 You can add a new structure by using:
+
 ```
 pdb_parser.add_protein(<UniProtID>)
 ```
 
-The keepFiles argument can be used, to tell the program, to not delete PDB and 
+The keepFiles argument can be used, to tell the program, to not delete PDB and
 GLB file after the processing is accomplished.
 
 ## Fetch the PDB
+
 ```
 pdb_parser.fetch_pdb(protein)
 ```
@@ -180,6 +207,7 @@ This will download the PDB file from the AlphaFold DB if available. This will be
 If the structure is not available on the AlphaFold DB it will try to download it from the RCSB database. If the structure is also not available here, it will report it to you.
 
 ## Color the secondary structures
+
 You can define the installation Path to your ChimeraX installation by using:
 
 ```
@@ -204,21 +232,32 @@ It will save the results as a .glb file.
 To convert a GLB file to PLY you can use the convertGLBToPLY function of the
 ChimeraXProcessing class. You can simply call the function together with the
 UniProtID of the respective protein. You can then use:
+
 ```
 pdb_parser.convertGLPToPly(<UniProtID>)
 ```
+
 This will convert the GLB file, which has been processed beforehand,
 to a PLY file.
 
 # Create the PointCloud
+
 # sample_pointcloud.py
+
 #### Author: Felix Fischer
+
 ## Requires python library open3d
+
 ## Requires "Cube_no_lines.ply" in base folder of script.
+
 This script will import the protein mesh (requires uniport ID of protein as input) and the mesh "Cube_no_lines.ply". The cube mesh (based on "Cube.fbx") is used for normalization of coordinate space of protein-mesh. The protein-mesh will be translated to the center coordinates of the cube-mesh and scaled to approximately the size of the cube-mesh. The two meshes will then be merged and a point cloud is sampled (1048576 points sampled) and stored as ASCII file in /ASCII_clouds (will create folder if it does not exist).
 
 # Create .png files
+
 # pointcloud2map
+
 #### Author: Felix Fischer
+
 ## Requires python library PyPNG, numpy
+
 This script opens the ASCII cloud of protein (requires uniport ID of protein as input) from ASCII_clouds foler, reads and stores the xyz coordinates and rgb value for each point in the point cloud in a seperate matrix, which is then converted in to two PNG files of size 1024x1024. The resulting PNG maps are stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
