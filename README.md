@@ -22,6 +22,9 @@ Install the package e.g. in a virtual environment:
   `source name_of_env/bin/activate`
 - install requirements packages<br>
   `python3 -m pip install -r requirements.txt`
+
+- under mac you might have to install the following packages<br>
+  `brew install libomp`
 - install alphafold_to_vrnetzer<br>
   `TODO`
 
