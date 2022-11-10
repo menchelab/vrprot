@@ -46,12 +46,12 @@ This will fetch the structure of O95352, Q9Y5M8 and Q9UKX5 from the AlphaFold
 database and processes them using the pipeline. As coloring the secondary structures are
 colored in red, green and blue.
 
-### Process from a python list of proteins
+### Process from a list of proteins
 
-`./main.py list <path_to_python_file> <line_of_the_list>`
+`./main.py list <path_to_file>`
 <br>
 example:<br>
-`./main.py list ./missing.py 1`
+`./main.py list proteins.txt`
 <br>
 Works like the previous command, but the python list is read from a file.
 
