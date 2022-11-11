@@ -1,4 +1,22 @@
-# alphafold_to_vrnetzer
+# VRPROT
+
+## ABOUT VRPROT
+
+A pipeline that processes protein structures in ProteinDataBank (PDB) file format
+using ChimeraX and enables them to be analyzed on the [VRNetzer](https://github.com/menchelab/VRNetzer) platform.
+
+---
+
+## PROTEIN STRUCTURE ANALYSIS
+
+---
+
+## USAGE OF THIS PROJECT
+
+The main purpose of this project is to serve as an easy to use pipeline to facilitate the processing of protein structures for presentation on the [VRNetzer](https://github.com/menchelab/VRNetzer). It is mainly used in a the [ProteinStructureFetch Extension](TODO) of the [VRNetzer](https://github.com/menchelab/VRNetzer). For everyone who wants to analyze their own protein structures, with your desired highlighting and coloring, this project is the right place to start. For easy usage of this project, we provide a one file executable which allows to use the program without further installation of python and any dependencies. Nevertheless, a [ChimeraX](https://www.cgl.ucsf.edu/chimerax/download.html) installation is mandatory to use the full potential of this project.
+Without ChimeraX this software only provides a fetcher with which you can easily fetch pdb files from the [AlphaFold Database](https://alphafold.ebi.ac.uk/) as well as some converter functions.
+
+---
 
 # Quickstart
 
@@ -7,8 +25,6 @@
 #### Software/OS requirements
 
 - An installation of ChimeraX
-
-- Operating systems: Linux and macOS.
 
 ### Installation
 
