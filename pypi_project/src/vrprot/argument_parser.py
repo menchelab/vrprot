@@ -7,7 +7,7 @@ def argument_parser(exec_name="main.py"):
     parser = ArgumentParser(prog=exec_name)
     subparsers = parser.add_subparsers(help="mode", dest="mode")
     fetch_parser = subparsers.add_parser(
-        "fetch", help="Fetch proteins from the AlphaFold database."
+        "fetch", help="Fetch proteins from the Alphafold database."
     )
     fetch_parser.add_argument(
         "proteins",
@@ -85,8 +85,8 @@ def argument_parser(exec_name="main.py"):
         "--av",
         type=str,
         nargs="?",
-        choices=AlphaFoldVersion.list_of_versions(),
-        help="Defines, which version of AlphaFold to use.",
+        choices=list(AlphaFoldVersion),
+        help="Defines, which version of Alphafold to use.",
     )
     parser.add_argument(
         "-batch_size",
@@ -136,7 +136,7 @@ def argument_parser(exec_name="main.py"):
         metavar="CHIMERAX_EXEC",
         help="Defines, where to find the ChimeraX executable.",
     )
-    colormode_choices = ColoringModes.list_of_modes()[:5]
+    colormode_choices = ", ".join(list(ColoringModes.__members__.keys())[:5])
     parser.add_argument(
         "-color_mode",
         "--cm",

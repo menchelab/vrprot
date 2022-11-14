@@ -33,7 +33,7 @@ class Logger:
         consoleHandler = logging.StreamHandler()
         consoleHandler.setLevel(level)
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s: %(message)s",
+            "%(asctime)s - %(name)s%(levelname)s: %(message)s",
             datefmt="%m/%d/%Y %I:%M:%S%p",
         )
         consoleHandler.setFormatter(formatter)
@@ -137,7 +137,7 @@ class ColoringModes(Enum):
 
     @staticmethod
     def list_of_modes():
-        return [str(mode.value) for mode in ColoringModes]
+        return [mode.value for mode in ColoringModes]
 
 
 class AlphaFoldVersion(Enum):
@@ -148,7 +148,7 @@ class AlphaFoldVersion(Enum):
 
     @staticmethod
     def list_of_versions():
-        return [ver.value for ver in AlphaFoldVersion]
+        return list(map(lambda c: c.value, AlphaFoldVersion))
 
 
 def fetch_pdb_from_rcsb(uniprot_id: str, save_location: str) -> None:

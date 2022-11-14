@@ -5,7 +5,7 @@ import pandas as pd
 from .util import WD, ColoringModes, ProteinStructure
 
 STATIC_PATH = os.path.join(WD, "static")
-CSV_PATH = os.path.join(STATIC_PATH,"csv")
+CSV_PATH = os.path.join(STATIC_PATH, "static")
 DEFAULT_OVERVIEW_FILE = os.path.join(WD, "static", "csv", "overview.csv")
 COLUMNS = ["uniprot_id", "pdb_file", "multi_structure", "parts"]
 for mode in ColoringModes.__dict__.values():
@@ -48,7 +48,6 @@ def write_overview(overview, file=None) -> None:
     Writes the overview table.
     """
     os.makedirs(CSV_PATH, exist_ok=True)
-    print(CSV_PATH)
     if file is None:
         file = DEFAULT_OVERVIEW_FILE
     if not os.path.exists(file):

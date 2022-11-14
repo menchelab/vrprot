@@ -1,2 +1,8 @@
-from . import (alphafold_db_parser, batcher, exceptions, overview_util,
-               pointcloud2map_8bit, sample_pointcloud, util)
+from . import alphafold_db_parser
+from . import util
+from . import batcher
+from . import exceptions
+from . import main
+from . import pointcloud2map_8bit
+from . import sample_pointcloud
+from . import overview_util
