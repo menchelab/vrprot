@@ -27,13 +27,13 @@ class Logger:
     Implementation based on https://dotnettutorials.net/lesson/customized-logging-in-python/
     """
 
-    def __init__(self, name, level=logging.INFO):
+    def __init__(self, name, level=logging.DEBUG):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         consoleHandler = logging.StreamHandler()
         consoleHandler.setLevel(level)
         formatter = logging.Formatter(
-            "%(asctime)s - %(name)s%(levelname)s: %(message)s",
+            "%(asctime)s - %(name)s %(levelname)s: %(message)s",
             datefmt="%m/%d/%Y %I:%M:%S%p",
         )
         consoleHandler.setFormatter(formatter)

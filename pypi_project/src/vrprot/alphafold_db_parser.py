@@ -189,8 +189,8 @@ class AlphafoldDBParser:
                 colors,
             )
             for structure in tmp_strucs:
-                if not self.keep_temp[FT.pdb_file]:
-                    os.remove(structure.pdb_file)
+                if not self.keep_temp[FT.pdb_file] and os.path.isfile(structure.pdb_file):
+                        os.remove(structure.pdb_file)
                 structure.existing_files[FT.glb_file] = True
 
     def convert_glbs(self, proteins: list[str]) -> None:
