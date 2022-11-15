@@ -13,6 +13,7 @@
 ## upload pypi - project
 
 `python3 -m twine upload dist/*`
+`python3 -m twine upload --repository testpypi dist/*`
 
 - New version number in pyproject.toml when uploading a new version of the project.
 

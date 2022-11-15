@@ -21,7 +21,7 @@ class AlphafoldDBParser:
 
     WD: str = util.WD
     chimerax: str = "chimerax"
-    alphafold_ver: AlphaFoldVersion = AlphaFoldVersion.v1.value
+    alphafold_ver: AlphaFoldVersion = AlphaFoldVersion.v4.value
     batch_size: int = 50
     chimerax: str = None
     processing: str = ColoringModes.cartoons_ss_coloring.value
