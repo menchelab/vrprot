@@ -349,7 +349,7 @@ def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
     return True
 
 
-def batch(funcs: list[object], proteins: list[str], batch_size: int) -> None:
+def batch(funcs: list[object], proteins: list[str], batch_size: int=50) -> None:
     """Will run the functions listed in funcs in a batched process."""
     start = 0
     end = batch_size

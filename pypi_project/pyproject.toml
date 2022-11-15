@@ -1,9 +1,9 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling","hatch-requirements-txt"]
 build-backend = "hatchling.build"
 [project]
 name = "vrprot"
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name="Till Oblau", email="till@menchelab.com" },
   { name="Felix Fischer", email="a51832854@unet.univie.ac.at" },
@@ -19,8 +19,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dynamic=["dependencies"]
 
 [project.urls]
 "Homepage" = "https://menchelab.com/"
 "Bug Tracker" = "https://github.com/menchelab/alphafold_to_vrnetzer/issues"
 "Git" = "https://github.com/menchelab/alphafold_to_vrnetzer"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
