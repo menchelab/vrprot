@@ -8,12 +8,11 @@ import subprocess as sp
 import sys
 from dataclasses import dataclass
 from enum import Enum, auto
-
 import requests
 import trimesh
 from trimesh.exchange import ply
 
-from .exceptions import StructureNotFoundError
+from .exceptions import StructureNotFoundError,ChimeraXException
 
 wd = os.path.dirname(".")  # for final executable
 # wd = os.path.dirname(__file__)  # for development
@@ -214,7 +213,7 @@ def search_for_chimerax():
             "/Applications/ChimeraX*.app/Contents/MacOS/chimerax", recursive=True
         )
         if len(locations) == 0:
-            raise Exception("ChimeraX not found. Is it installed?")
+            raise ChimeraXException("ChimeraX not found. Is it installed?")
         chimerax = locations[0]
     elif platform.system() == "Linux":
         chimerax = "chimerax"
@@ -231,7 +230,7 @@ def search_for_chimerax():
                 chimerax = f'"{chimerax[0]}"'.replace("/", "\\")
                 break
         if len(chimerax) == 0:
-            raise Exception("ChimeraX not found. Is it installed?")
+            raise ChimeraXException("ChimeraX not found. Is it installed?")
 
     return chimerax
 
