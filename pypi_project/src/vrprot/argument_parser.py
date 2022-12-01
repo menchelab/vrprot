@@ -144,6 +144,13 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         help=f"Defines the coloring mode which will be used to color the structure. Choices: {colormode_choices}... . For a full list, see README.",
     )
+    parser.add_argument(
+        "-img_size",
+        "--imgs",
+        type=int,
+        nargs="?",
+        help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
+    )
 
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])

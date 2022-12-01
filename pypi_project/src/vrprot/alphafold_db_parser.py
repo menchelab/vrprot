@@ -37,6 +37,7 @@ class AlphafoldDBParser:
             FT.ascii_file: False,
         }
     )
+    img_size:int = 512
     log = Logger("AlphafoldDBParser")
 
     def update_output_dir(self, output_dir):
@@ -263,6 +264,7 @@ class AlphafoldDBParser:
                     structure.rgb_file,
                     structure.xyz_low_file,
                     structure.xyz_high_file,
+                    img_size=self.img_size,
                 )
                 self.log.debug(
                     f"Generated color maps {structure.rgb_file}, {structure.xyz_low_file} and {structure.xyz_high_file}"
@@ -439,6 +441,7 @@ class AlphafoldDBParser:
                     break
 
     def set_coloring_mode(self, args: Namespace) -> None:
+        """Sets the mode in which the protein structures will be processed and colored."""
         if args.cm is not None:
             self.processing = args.cm
 
@@ -466,5 +469,11 @@ class AlphafoldDBParser:
         util.remove_dirs(processing_files)
 
     def set_chimerax(self, args: Namespace):
+        """Sets the path to the chimerax executable."""
         if args.ch is not None:
             self.chimerax = args.ch
+
+    def set_img_size(self, args: Namespace):
+        """Sets the image size of the generated output images."""
+        if args.imgs is not None:
+            self.img_size = args.isize

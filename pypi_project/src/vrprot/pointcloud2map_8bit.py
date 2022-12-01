@@ -27,8 +27,7 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
     # xyzrgb file comes with RGB stores as float. RGB values between 0.0 and 1.0 and XYZ values between -x and x -> TODO: Range?
     f = open(ascii_file, "r")
 
-    img_size = 512
-
+    log.debug(f"Image size is: {img_size}x{img_size}")
     x, y, z = [], [], []
     n1_X = []
     n1_Y = []

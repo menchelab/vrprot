@@ -20,6 +20,7 @@ def main():
     parser.set_alphafold_version(args)
     parser.set_coloring_mode(args)
     parser.set_chimerax(args)
+    parser.set_img_size(args)
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
     if args.mode == "local":
