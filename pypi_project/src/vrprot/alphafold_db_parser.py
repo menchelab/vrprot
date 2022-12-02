@@ -37,7 +37,8 @@ class AlphafoldDBParser:
             FT.ascii_file: False,
         }
     )
-    img_size:int = 512
+    img_size: int = 512
+    database = util.Database.AlphaFold
     log = Logger("AlphafoldDBParser")
 
     def update_output_dir(self, output_dir):
@@ -136,14 +137,21 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             if not structure.existing_files[FT.pdb_file]:
-                self.log.debug(
-                    f"Fetching {protein} from AlphaFold server with version {self.alphafold_ver}."
-                )
-                if util.fetch_pdb_from_alphafold(
-                    protein,
-                    self.PDB_DIR,
-                    self.alphafold_ver,
-                ):
+
+                # The fetching itself
+                fetched = False
+                if self.database == util.Database.AlphaFold.value:
+                    self.log.debug(
+                        f"Fetching {protein} from AlphaFold server with version {self.alphafold_ver}."
+                    )
+                    fetched = util.fetch_pdb_from_alphafold(
+                        protein, self.PDB_DIR, self.alphafold_ver
+                    )
+                elif self.database == util.Database.RCSB.value:
+                    self.log.debug(f"Fetching {protein} from RCSB server.")
+                    fetched = util.fetch_pdb_from_rcsb(protein, self.PDB_DIR)
+
+                if fetched:
                     structure.existing_files[FT.pdb_file] = True
                 else:
                     self.not_fetched.append(protein)
@@ -190,8 +198,10 @@ class AlphafoldDBParser:
                 colors,
             )
             for structure in tmp_strucs:
-                if not self.keep_temp[FT.pdb_file] and os.path.isfile(structure.pdb_file):
-                        os.remove(structure.pdb_file)
+                if not self.keep_temp[FT.pdb_file] and os.path.isfile(
+                    structure.pdb_file
+                ):
+                    os.remove(structure.pdb_file)
                 structure.existing_files[FT.glb_file] = True
 
     def convert_glbs(self, proteins: list[str]) -> None:
@@ -477,3 +487,8 @@ class AlphafoldDBParser:
         """Sets the image size of the generated output images."""
         if args.imgs is not None:
             self.img_size = args.isize
+
+    def set_database(self, args: Namespace):
+        """Sets the database to be used."""
+        if args.db is not None:
+            self.database = args.db

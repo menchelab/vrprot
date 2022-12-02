@@ -8,11 +8,12 @@ import subprocess as sp
 import sys
 from dataclasses import dataclass
 from enum import Enum, auto
+
 import requests
 import trimesh
 from trimesh.exchange import ply
 
-from .exceptions import StructureNotFoundError,ChimeraXException
+from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
 # wd = os.path.dirname(__file__)  # for development
@@ -148,6 +149,11 @@ class AlphaFoldVersion(Enum):
     @staticmethod
     def list_of_versions():
         return list(map(lambda c: c.value, AlphaFoldVersion))
+
+
+class Database(Enum):
+    AlphaFold = "alphafold"
+    RCSB = "rcsb"
 
 
 def fetch_pdb_from_rcsb(uniprot_id: str, save_location: str) -> None:
@@ -348,7 +354,7 @@ def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
     return True
 
 
-def batch(funcs: list[object], proteins: list[str], batch_size: int=50) -> None:
+def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> None:
     """Will run the functions listed in funcs in a batched process."""
     start = 0
     end = batch_size

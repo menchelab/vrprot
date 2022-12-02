@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from .util import AlphaFoldVersion, ColoringModes
+from .util import AlphaFoldVersion, ColoringModes, Database
 
 
 def argument_parser(exec_name="main.py"):
@@ -85,7 +85,7 @@ def argument_parser(exec_name="main.py"):
         "--av",
         type=str,
         nargs="?",
-        choices=list(AlphaFoldVersion),
+        choices=[ver.value for ver in AlphaFoldVersion],
         help="Defines, which version of Alphafold to use.",
     )
     parser.add_argument(
@@ -136,7 +136,7 @@ def argument_parser(exec_name="main.py"):
         metavar="CHIMERAX_EXEC",
         help="Defines, where to find the ChimeraX executable.",
     )
-    colormode_choices = ", ".join(list(ColoringModes.__members__.keys())[:5])
+    colormode_choices = ", ".join(list(col.value for col in ColoringModes)[:5])
     parser.add_argument(
         "-color_mode",
         "--cm",
@@ -150,6 +150,14 @@ def argument_parser(exec_name="main.py"):
         type=int,
         nargs="?",
         help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
+    )
+    parser.add_argument(
+        "-database",
+        "--db",
+        type=str,
+        nargs="?",
+        choices=[db.value for db in Database],
+        help=f"Defines the database from which the proteins will be fetched.",
     )
 
     if parser.parse_args().mode == None:

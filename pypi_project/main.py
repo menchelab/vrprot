@@ -1,8 +1,8 @@
 #! python3
 
-from .src.vrprot.alphafold_db_parser import AlphafoldDBParser
-from .src.vrprot.argument_parser import argument_parser
-from .src.vrprot.util import Logger
+from src.vrprot.alphafold_db_parser import AlphafoldDBParser
+from src.vrprot.argument_parser import argument_parser
+from src.vrprot.util import Logger
 
 log = Logger("main")
 
@@ -21,6 +21,7 @@ def main():
     parser.set_coloring_mode(args)
     parser.set_chimerax(args)
     parser.set_img_size(args)
+    parser.set_database(args)
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
     if args.mode == "local":
