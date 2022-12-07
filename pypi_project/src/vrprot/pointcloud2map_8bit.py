@@ -42,6 +42,8 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
 
     lines = list(f.readlines())
 
+    log.debug(ascii_file)
+
     for i in range(1048576):
         # print(i)
         if i >= len(lines):
@@ -57,13 +59,17 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
         else:
             line = lines[i]
             new_line = list(line.strip().split(" "))
+
             #!
             #!convert float RGB values [0,1] to [0,255] = intvalues of RGB
             #!
-            new_line[3] = float(new_line[3]) * 255  # type: ignore
-            new_line[4] = float(new_line[4]) * 255  # type: ignore
-            new_line[5] = float(new_line[5]) * 255  # type: ignore
-
+            try:
+                new_line[3] = float(new_line[3]) * 255  # type: ignore
+                new_line[4] = float(new_line[4]) * 255  # type: ignore
+                new_line[5] = float(new_line[5]) * 255  # type: ignore
+            except IndexError as e:
+                log.debug(f"{i},{new_line}")
+                raise IndexError(e)
             if len(new_line) >= 3:
                 # Extract xyz values
                 p_x = float(new_line[0])

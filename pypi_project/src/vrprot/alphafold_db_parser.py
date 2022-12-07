@@ -38,7 +38,7 @@ class AlphafoldDBParser:
         }
     )
     img_size: int = 512
-    database = util.Database.AlphaFold
+    database: str = None
     log = Logger("AlphafoldDBParser")
 
     def update_output_dir(self, output_dir):
@@ -59,6 +59,8 @@ class AlphafoldDBParser:
         self.GLB_DIR = os.path.join(self.WD, "processing_files", "glbs")
         self.ASCII_DIR = os.path.join(self.WD, "processing_files", "ASCII_clouds")
         self.OUTPUT_DIR = os.path.join(self.WD, "processing_files", "MAPS")
+        if self.database is None:
+            self.database = util.Database.AlphaFold.value
 
     def init_dirs(self, subs=True) -> None:
         """
@@ -136,8 +138,10 @@ class AlphafoldDBParser:
             return
         for protein in proteins:
             structure = self.structures[protein]
+            self.log.debug(f"Checking if {protein} is already fetched.")
             if not structure.existing_files[FT.pdb_file]:
-
+                self.log.debug(f"{protein} needs to be fetched.")
+                self.log.debug(f"Database is set to {self.database}.")
                 # The fetching itself
                 fetched = False
                 if self.database == util.Database.AlphaFold.value:
@@ -150,11 +154,16 @@ class AlphafoldDBParser:
                 elif self.database == util.Database.RCSB.value:
                     self.log.debug(f"Fetching {protein} from RCSB server.")
                     fetched = util.fetch_pdb_from_rcsb(protein, self.PDB_DIR)
-
+                else:
+                    self.log.error(
+                        f"Database {self.database} is not supported. Please choose between {util.Database.AlphaFold.value} and {util.Database.RCSB.value}."
+                    )
                 if fetched:
                     structure.existing_files[FT.pdb_file] = True
                 else:
                     self.not_fetched.append(protein)
+            else:
+                self.log.debug(f"{protein} is already fetched.")
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """
