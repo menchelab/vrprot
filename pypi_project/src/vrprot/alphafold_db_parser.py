@@ -1,8 +1,10 @@
 #! python3
 import os
+import traceback
 from argparse import Namespace
 from dataclasses import dataclass, field
 
+from . import exceptions
 from . import overview_util as ov_util
 from . import util
 from .overview_util import DEFAULT_OVERVIEW_FILE
@@ -15,20 +17,37 @@ from .util import Logger, ProteinStructure, batch
 
 @dataclass
 class AlphafoldDBParser:
-    """
-    Class to parse PDB files and convert them to ply.
+    """Class to parse PDB files and convert them to ply.
+
+    Raises:
+        exceptions.ChimeraXException: If ChimeraX is not installed or cannot be found this Exception is raised.
+    Args:
+        WD (str): Working directory to store processing files and output files. Defaults to "./" .
+        chimerax (str): Path to ChimeraX executable. Defaults to "chimerax"
+        alphafold_ver (str): Defines the version of the AlphaFoldDB to be used. Options are "v1,v2,v3,v4".
+        batch_size (int): Defines the size of each batch which is to be processed.
+        processing (str): Defines the processing mode which is used to color the protein structures in ChimeraX. Defaults to "cartoons_ss_coloring".
+        overview_file (str): Path to where to store the overview file in which the scale of each protein strucure and the color mode is stored. Defaults to "./static/csv/overview.csv".
+        structures (dict[str,ProteinStructure]): Dictionary that maps strings of structures to the ProteinStructure object. Defaults to {}.
+        not_fetched set[str]: Set of protein structures which could no be fetched. Deafults to [].
+        keep_temp dict[FT, bool]: Configuration to keep or remove processing files like PDB or GLB files after each processing step. Defaults to:
+            {
+                FT.pdb_file: False,
+                FT.glb_file: False,
+                FT.ply_file: False,
+                FT.ascii_file: False,
+            }
+        log: logging.logger: Log with a specific name. Defaults to Logger("AlphafoldDBParser")
     """
 
     WD: str = util.WD
     chimerax: str = "chimerax"
-    alphafold_ver: AlphaFoldVersion = AlphaFoldVersion.v4.value
+    alphafold_ver: str = AlphaFoldVersion.v1.value
     batch_size: int = 50
-    chimerax: str = None
     processing: str = ColoringModes.cartoons_ss_coloring.value
     overview_file: str = DEFAULT_OVERVIEW_FILE
-    structures: list[ProteinStructure] = field(default_factory=lambda: {})
-    not_fetched: list[str] = field(default_factory=lambda: [])
-    given_name: bool = False
+    structures: dict[str, ProteinStructure] = field(default_factory=lambda: {})
+    not_fetched: list[str] = field(default_factory=lambda: set())
     keep_temp: dict[FT, bool] = field(
         default_factory=lambda: {
             FT.pdb_file: False,
@@ -37,14 +56,15 @@ class AlphafoldDBParser:
             FT.ascii_file: False,
         }
     )
-    img_size: int = 512
-    database: str = None
-    log = Logger("AlphafoldDBParser")
+    log: Logger = Logger("AlphafoldDBParser")
 
     def update_output_dir(self, output_dir):
+        """Updates the output directory of resulting images.
+
+        Args:
+            output_dir (_type_): _description_
         """
-        Updates the output directory of resulting images.
-        """
+
         self.OUTPUT_DIR = output_dir
         self.init_dirs()
 
@@ -59,8 +79,6 @@ class AlphafoldDBParser:
         self.GLB_DIR = os.path.join(self.WD, "processing_files", "glbs")
         self.ASCII_DIR = os.path.join(self.WD, "processing_files", "ASCII_clouds")
         self.OUTPUT_DIR = os.path.join(self.WD, "processing_files", "MAPS")
-        if self.database is None:
-            self.database = util.Database.AlphaFold.value
 
     def init_dirs(self, subs=True) -> None:
         """
@@ -138,32 +156,16 @@ class AlphafoldDBParser:
             return
         for protein in proteins:
             structure = self.structures[protein]
-            self.log.debug(f"Checking if {protein} is already fetched.")
+            self.log.debug(f"Checking if {protein} is already processed.")
             if not structure.existing_files[FT.pdb_file]:
-                self.log.debug(f"{protein} needs to be fetched.")
-                self.log.debug(f"Database is set to {self.database}.")
-                # The fetching itself
-                fetched = False
-                if self.database == util.Database.AlphaFold.value:
-                    self.log.debug(
-                        f"Fetching {protein} from AlphaFold server with version {self.alphafold_ver}."
-                    )
-                    fetched = util.fetch_pdb_from_alphafold(
-                        protein, self.PDB_DIR, self.alphafold_ver
-                    )
-                elif self.database == util.Database.RCSB.value:
-                    self.log.debug(f"Fetching {protein} from RCSB server.")
-                    fetched = util.fetch_pdb_from_rcsb(protein, self.PDB_DIR)
-                else:
-                    self.log.error(
-                        f"Database {self.database} is not supported. Please choose between {util.Database.AlphaFold.value} and {util.Database.RCSB.value}."
-                    )
-                if fetched:
+                if util.fetch_pdb_from_alphafold(
+                    protein,
+                    self.PDB_DIR,
+                    self.alphafold_ver,
+                ):
                     structure.existing_files[FT.pdb_file] = True
                 else:
-                    self.not_fetched.append(protein)
-            else:
-                self.log.debug(f"{protein} is already fetched.")
+                    self.not_fetched.add(protein)
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """
@@ -283,7 +285,6 @@ class AlphafoldDBParser:
                     structure.rgb_file,
                     structure.xyz_low_file,
                     structure.xyz_high_file,
-                    img_size=self.img_size,
                 )
                 self.log.debug(
                     f"Generated color maps {structure.rgb_file}, {structure.xyz_low_file} and {structure.xyz_high_file}"
@@ -354,7 +355,11 @@ class AlphafoldDBParser:
                 f"All structures of this batch: {tmp} are already processed. Skipping this batch."
             )
             return
-        self.chimerax_process(proteins, self.processing)
+        try:
+            self.chimerax_process(proteins, self.processing)
+        except Exception as e:
+            traceback.print_exc()
+            raise exceptions.ChimeraXException
         self.log.debug("Converting GLBs to PLYs...")
         self.convert_glbs(proteins)
         self.log.debug("Sampling PointClouds...")
@@ -460,7 +465,6 @@ class AlphafoldDBParser:
                     break
 
     def set_coloring_mode(self, args: Namespace) -> None:
-        """Sets the mode in which the protein structures will be processed and colored."""
         if args.cm is not None:
             self.processing = args.cm
 
@@ -488,16 +492,5 @@ class AlphafoldDBParser:
         util.remove_dirs(processing_files)
 
     def set_chimerax(self, args: Namespace):
-        """Sets the path to the chimerax executable."""
         if args.ch is not None:
             self.chimerax = args.ch
-
-    def set_img_size(self, args: Namespace):
-        """Sets the image size of the generated output images."""
-        if args.imgs is not None:
-            self.img_size = args.isize
-
-    def set_database(self, args: Namespace):
-        """Sets the database to be used."""
-        if args.db is not None:
-            self.database = args.db

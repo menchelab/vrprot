@@ -148,7 +148,7 @@ class AlphaFoldVersion(Enum):
 
     @staticmethod
     def list_of_versions():
-        return list(map(lambda c: c.value, AlphaFoldVersion))
+        return [ver.value for ver in AlphaFoldVersion]
 
 
 class Database(Enum):
