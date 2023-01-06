@@ -1,5 +1,9 @@
 # Author: Till Pascal Oblau
+# To Run this script, use the following command:
+# chimerax --script '"combine_structures.py" "<directory where the pdbs files are located>" "<directory where the combined structures should be saved>"'
+
 import glob
+import os
 import shutil
 import sys
 
@@ -34,7 +38,9 @@ def main(directory: str, target: str):
         for file in structures:
             all_files.remove(file)
             filename = file.split("/")[-1]
+            os.makedirs(f"{directory}/{first_structure}", exist_ok=True)
             shutil.move(file, f"{directory}/{first_structure}/{filename}")
+    run(session, "exit")
 
 
 # directory = "/Users/till/Documents/UNI/Master_Bioinformatik-Universität_Wien/3.Semester/proteins/Multistru"

@@ -20,8 +20,6 @@ Without ChimeraX this software only provides a fetcher with which you can easily
 
 # Quickstart
 
-#### Authors: Felix Fischer and Till Pascal Oblau
-
 #### Software/OS requirements
 
 - An installation of ChimeraX
@@ -136,6 +134,49 @@ optional arguments:
                         cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring, cartoons_chain_coloring... . For
                         a full list, see README.
 ```
+
+## Larger structures from the AlphaFold DB
+
+All structures fetched directly from the AlphaFold DB have a maximum length of 2700 amino acids.
+Larger structures are contained in the [bulk downloads](https://alphafold.ebi.ac.uk/download) offered by AlphaFold DB.
+To unpack the pdb files from these archives, one can use the extract_alphafold.sh bash script located in "pypi_project/src/vrprot/scripts/".
+This script will extract all pdb files from the archive and save them in the desired directory.
+Use the script as follows:
+
+```
+  ./extract_alphafold.sh <path_to_archive> <path_to_output_directory>
+```
+
+Structures larger than 2700 amino acids are seperated in multiple fractions (F1 - Fn).
+A python script is provided to combine these fractions into one structure. Use the script with ChimeraX's python interpreter.
+The script can be run either directly from the command line interface:
+
+Linux:
+
+```
+  chimerax --offscreen --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+```
+
+Mac:
+
+```
+  /Applications/ChimeraX-<version>.app/Contents/MacOS/chimerax --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+```
+
+Windows:
+
+```
+  #TODO:Try this
+  "C:\Program Files\ChimeraX-X\bin\chimerax.exe" --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+```
+
+Or inside of ChimeraX executing the following command:
+
+```
+  runscript combine_structures.py <path_to_directory> <path_to_output_directory>
+```
+
+Be aware that these combine structures are glb files and can therefore not be preprocessed with one of the coloring modes.
 
 ## Possible Color Modes
 
