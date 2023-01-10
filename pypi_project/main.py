@@ -11,7 +11,7 @@ def main():
     """Main function will take the arguments passed by the user and execute the program accordingly."""
     args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
-    log.info(f"Alphafold_Version:   {parser.alphafold_ver}")
+    log.info(f"Alphafold_Version: {parser.alphafold_ver}")
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
@@ -22,6 +22,7 @@ def main():
     parser.set_chimerax(args)
     parser.set_img_size(args)
     parser.set_database(args)
+
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
     if args.mode == "local":

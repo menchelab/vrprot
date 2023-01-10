@@ -57,6 +57,8 @@ class AlphafoldDBParser:
         }
     )
     log: Logger = Logger("AlphafoldDBParser")
+    img_size: int = 512
+    db: str = util.Database.AlphaFold.value
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -158,14 +160,20 @@ class AlphafoldDBParser:
             structure = self.structures[protein]
             self.log.debug(f"Checking if {protein} is already processed.")
             if not structure.existing_files[FT.pdb_file]:
-                if util.fetch_pdb_from_alphafold(
-                    protein,
-                    self.PDB_DIR,
-                    self.alphafold_ver,
-                ):
-                    structure.existing_files[FT.pdb_file] = True
-                else:
-                    self.not_fetched.add(protein)
+                if self.db == util.Database.AlphaFold.value:
+                    if util.fetch_pdb_from_alphafold(
+                        protein,
+                        self.PDB_DIR,
+                        self.alphafold_ver,
+                    ):
+                        structure.existing_files[FT.pdb_file] = True
+                    else:
+                        self.not_fetched.add(protein)
+                elif self.db == util.Database.RCSB.value:
+                    if util.fetch_pdb_from_rcsb(protein, self.PDB_DIR):
+                        structure.existing_files[FT.pdb_file] = True
+                    else:
+                        self.not_fetched.add(protein)
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """
@@ -253,6 +261,7 @@ class AlphafoldDBParser:
                 scale = sample_pcd(
                     structure.ply_file,
                     structure.ascii_file,
+                    SAMPLE_POINTS=self.img_size * self.img_size,
                 )
                 structure.existing_files[FT.ascii_file] = True
                 structure.scale = scale
@@ -285,9 +294,10 @@ class AlphafoldDBParser:
                     structure.rgb_file,
                     structure.xyz_low_file,
                     structure.xyz_high_file,
+                    self.img_size,
                 )
                 self.log.debug(
-                    f"Generated color maps {structure.rgb_file}, {structure.xyz_low_file} and {structure.xyz_high_file}"
+                    f"Generated color maps {structure.rgb_file}, {structure.xyz_low_file} and {structure.xyz_high_file} with a size of {self.img_size}x{self.img_size} from {structure.ascii_file}"
                 )
                 structure.existing_files[FT.rgb_file] = True
                 structure.existing_files[FT.xyz_low_file] = True
@@ -467,6 +477,12 @@ class AlphafoldDBParser:
     def set_coloring_mode(self, args: Namespace) -> None:
         if args.cm is not None:
             self.processing = args.cm
+
+    def set_img_size(self, size: int) -> None:
+        self.img_size = size
+
+    def set_database(self, db: str) -> None:
+        self.db = db
 
     def execute_fetch(self, proteins: str) -> None:
         """Uses a list of proteins to fetch the PDB files from the alphafold db. This PDB files will then be used to generated the color maps."""
