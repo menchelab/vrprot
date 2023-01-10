@@ -59,6 +59,7 @@ class AlphafoldDBParser:
     log: Logger = Logger("AlphafoldDBParser")
     img_size: int = 512
     db: str = util.Database.AlphaFold.value
+    overwrite: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -159,7 +160,8 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             self.log.debug(f"Checking if {protein} is already processed.")
-            if not structure.existing_files[FT.pdb_file]:
+            if not structure.existing_files[FT.pdb_file] or self.overwrite:
+                self.log.debug(f"Fetching {protein} from {self.db}.")
                 if self.db == util.Database.AlphaFold.value:
                     if util.fetch_pdb_from_alphafold(
                         protein,
@@ -174,6 +176,10 @@ class AlphafoldDBParser:
                         structure.existing_files[FT.pdb_file] = True
                     else:
                         self.not_fetched.add(protein)
+            else:
+                self.log.debug(
+                    f"Structure {protein} is already processed and overwrite is not allowed."
+                )
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """
@@ -181,9 +187,10 @@ class AlphafoldDBParser:
         As default, the source pdb file is NOT removed.
         To change this set self.keep_temp[FT.pdb_file] = False.
         """
-        if self.chimerax is None:
+        if not (os.path.isfile(self.chimerax) and os.access(self.chimerax, os.X_OK)):
             self.chimerax = util.search_for_chimerax()
-
+        else:
+            print(f"{self.chimerax} found")
         colors = None
         if processing is None:
             processing = ColoringModes.cartoons_ss_coloring.value
@@ -195,14 +202,18 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             if (
-                not structure.existing_files[FT.glb_file]  # Skip if GLB file is present
-                and not structure.existing_files[
-                    FT.ply_file
-                ]  # Skip if PLY file is present
-                and not structure.existing_files[FT.ascii_file]
-            ) and structure.existing_files[  # Skip if ASCII file is present
-                FT.pdb_file
-            ]:
+                (
+                    not structure.existing_files[
+                        FT.glb_file
+                    ]  # Skip if GLB file is present
+                    and not structure.existing_files[
+                        FT.ply_file
+                    ]  # Skip if PLY file is present
+                    and not structure.existing_files[FT.ascii_file]
+                )
+                and structure.existing_files[FT.pdb_file]  # check if source is there
+                or (self.overwrite and structure.existing_files[FT.pdb_file])
+            ):
                 to_process.add(structure.pdb_file.split("/")[-1])
                 tmp_strucs.append(structure)
         # Process all Structures
@@ -232,12 +243,15 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             if (
-                not structure.existing_files[FT.ply_file]
-                # Skip if PLY file is present
-                and not structure.existing_files[
-                    FT.ascii_file
-                ]  # Skip if ASCII file is present
-            ) and structure.existing_files[FT.glb_file]:
+                (
+                    not structure.existing_files[FT.ply_file]
+                    # Skip if PLY file is present
+                    and not structure.existing_files[
+                        FT.ascii_file
+                    ]  # Skip if ASCII file is present
+                )
+                and structure.existing_files[FT.glb_file]
+            ) or (self.overwrite and structure.existing_files[FT.glb_file]):
                 if util.convert_glb_to_ply(structure.glb_file, structure.ply_file):
                     self.log.debug(
                         f"Converted {structure.glb_file} to {structure.ply_file}"
@@ -257,7 +271,7 @@ class AlphafoldDBParser:
             if (
                 not structure.existing_files[FT.ascii_file]
                 and structure.existing_files[FT.ply_file]
-            ):
+            ) or (self.overwrite and structure.existing_files[FT.ply_file]):
                 scale = sample_pcd(
                     structure.ply_file,
                     structure.ascii_file,
@@ -405,6 +419,8 @@ class AlphafoldDBParser:
         """
         Checks if the output files already exist in the  output directory.
         """
+        if self.overwrite:
+            return False
         for file in [
             structures.rgb_file,
             structures.xyz_low_file,
@@ -478,11 +494,13 @@ class AlphafoldDBParser:
         if args.cm is not None:
             self.processing = args.cm
 
-    def set_img_size(self, size: int) -> None:
-        self.img_size = size
+    def set_img_size(self, args: Namespace) -> None:
+        if args.imgs is not None:
+            self.img_size = args.imgs
 
-    def set_database(self, db: str) -> None:
-        self.db = db
+    def set_database(self, args: Namespace) -> None:
+        if args.db is not None:
+            self.db = args.db
 
     def execute_fetch(self, proteins: str) -> None:
         """Uses a list of proteins to fetch the PDB files from the alphafold db. This PDB files will then be used to generated the color maps."""

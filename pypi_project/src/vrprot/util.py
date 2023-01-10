@@ -316,17 +316,26 @@ def call_ChimeraX_bundle(
     arg.extend(script_arg)
     if platform.system() == "Linux":
         # for Linux we can use off screen render. This does not work on Windows or macOS
-        command = (
-            '%s --offscreen --script "' % chimerax
-            + ("%s " * len(arg)) % (tuple(arg))
-            + '"'
-        )
+        command = [
+            chimerax,
+            "--offscreen",
+            "--script",
+            ("%s " * len(arg)) % (tuple(arg)),
+        ]
+        # command = (
+        #     '%s --offscreen --script "' % chimerax
+        #     + ("%s " * len(arg)) % (tuple(arg))
+        #     + '"'
+        # )
     else:
         # call chimeraX with commandline in a subprocess
-        command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+        command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
+        # command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+    print(command)
     try:
-        process = sp.Popen(command, shell=True, stdout=sp.DEVNULL, stdin=sp.PIPE)
-
+        process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
+        # wait until chimeraX is finished with processing
+        process.wait()
     except Exception as e:
         # raise an expecting if chimeraX could not be found
         log.error(
@@ -334,8 +343,7 @@ def call_ChimeraX_bundle(
             + chimerax
             + "\nIf not please correct it."
         )
-    # wait until chimeraX is finished with processing
-    process.wait()
+        raise Exception
 
 
 def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:

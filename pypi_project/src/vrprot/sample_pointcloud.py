@@ -16,6 +16,7 @@ def sample_pcd(
     output,
     SAMPLE_POINTS=262144,
     cube_no_line=CUBE_NO_LINES,
+    debug=False,
 ):
 
     # get protein name & read mesh as .ply format
@@ -72,10 +73,8 @@ def sample_pcd(
     os.makedirs(save_location, exist_ok=True)
     o3d.io.write_point_cloud(output, pcd)
     # # Debug to view structure with cube.
-    # cube = o3d.io.read_triangle_mesh("Cube.ply")
-    # cube.compute_vertex_normals()
-    # o3d.visualization.draw_geometries([mesh, cube, mesh_bounding_box_new])
-    # o3d.visualization.draw_geometries([pcd])
+    if debug:
+        o3d.visualization.draw_geometries([pcd, cube_no_line, mesh_bounding_box_new])
     return scale
 
 
@@ -94,10 +93,3 @@ def run_for_batch():
             scale = sample_pcd(file, output)
             write_scale(protein, scale)
             # os.remove(file)
-
-
-if __name__ == "__main__":
-    from sys import argv
-
-    scale = sample_pcd(argv[1])
-    # run_for_batch()

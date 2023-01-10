@@ -3,6 +3,7 @@ import glob
 import os
 
 import open3d as o3d
+
 from util import WD
 
 CUBE_NO_LINES = os.path.join(WD, "static", "3d_objects", "Cube_no_line.ply")
