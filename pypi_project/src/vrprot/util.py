@@ -19,7 +19,7 @@ wd = os.path.dirname(".")  # for final executable
 # wd = os.path.dirname(__file__)  # for development
 WD = os.path.abspath(wd)  # for development
 FILE_DIR = os.path.dirname(__file__)
-SCRITPS = os.path.join(FILE_DIR, "scripts")
+SCRIPTS = os.path.join(FILE_DIR, "scripts")
 
 
 class Logger:
@@ -212,7 +212,7 @@ def fetch_pdb(uniprot_id: str, url: str, save_location: str, file_name: str) -> 
     return success
 
 
-def search_for_chimerax():
+def search_for_chimerax() -> str:
     """Will search for the chimerax executeable on the system. Does not work with windows so far."""
     if platform.system() == "Darwin":
         locations = glob.glob(
@@ -237,7 +237,8 @@ def search_for_chimerax():
                 break
         if len(chimerax) == 0:
             raise ChimeraXException("ChimeraX not found. Is it installed?")
-
+    if not (os.path.isfile(chimerax) and os.access(chimerax, os.X_OK)):
+        raise ChimeraXException("ChimeraX not found. Is it installed?")
     return chimerax
 
 
@@ -258,7 +259,7 @@ def run_chimerax_coloring_script(
         colors (list, optional): List containing three colors. The first is the color of coil. The second will be the color of the helix. And the last color is the color of the strands. Defaults to ["red", "green", "blue"] i.e. coils will be red, helix will be green and stands will be blue.
     """
     # Define script to call.
-    bundle = os.path.join(SCRITPS, "chimerax_bundle.py")
+    bundle = os.path.join(SCRIPTS, "chimerax_bundle.py")
     # Setup the arguments to call with the script.
     file_string = ""
     for file in proteins:
@@ -381,3 +382,14 @@ def remove_dirs(directory):
     """Removes a directory an all underlying subdirectories. WARNING this can lead to los of data!"""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
+
+
+def combine_fractions(directory: str, target: str, chimerax: str):
+    """Combines multi fraction protein structure to a single structure and exports it as glb file."""
+    if chimerax is None:
+        chimerax = search_for_chimerax()
+    script = os.path.join(SCRIPTS, "combine_structures.py")
+    command = [chimerax, "--script", f"{script} {directory} {target} True"]
+    process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
+    process.wait()
+    print("All multi fraction structures handled.")

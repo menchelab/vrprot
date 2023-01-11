@@ -1,5 +1,8 @@
 #! python3
+import gzip
 import os
+import shutil
+import tarfile
 import traceback
 from argparse import Namespace
 from dataclasses import dataclass, field
@@ -187,10 +190,7 @@ class AlphafoldDBParser:
         As default, the source pdb file is NOT removed.
         To change this set self.keep_temp[FT.pdb_file] = False.
         """
-        if not (os.path.isfile(self.chimerax) and os.access(self.chimerax, os.X_OK)):
-            self.chimerax = util.search_for_chimerax()
-        else:
-            print(f"{self.chimerax} found")
+        self.chimerax = util.search_for_chimerax()
         colors = None
         if processing is None:
             processing = ColoringModes.cartoons_ss_coloring.value
@@ -516,6 +516,27 @@ class AlphafoldDBParser:
         """Will extract all Uniprot IDs from a local directory. Assumes that the file names have a the following format:
         AF-<Uniprot ID>-F1-model-<v1/v2>.[pdb/glb/ply/xyzrgb]"""
         self.proteins_from_dir(source)
+
+    def execute_from_bulk(self, source: str):
+        """Will extract all PDB files from a tar archive downloaded from AlphafoldDB to Process all structures within it with the desired processing mode. Furthermore, multi fraction structures are combined to one large structure. These structures are not handled with the desired processing mode."""
+        tar = tarfile.open(source)
+        ext = ".pdb.gz"
+
+        for member in tar.getmembers():
+            if member.name.endswith(ext):
+                tar.extract(member, self.PDB_DIR)
+        tar.close()
+
+        for file in os.listdir(self.PDB_DIR):
+            if file.endswith(ext):
+                in_file = os.path.join(self.PDB_DIR, file)
+                out_file = os.path.join(self.PDB_DIR, file.replace(".gz", ""))
+                with gzip.open(in_file, "rb") as f_in:
+                    with open(out_file, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                os.remove(in_file)
+        self.chimerax = util.search_for_chimerax()
+        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.chimerax)
 
     def clear_default_dirs(self) -> None:
         """Clears the default directories."""

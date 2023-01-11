@@ -2,6 +2,7 @@
 # To Run this script, use the following command:
 # chimerax --script '"combine_structures.py" "<directory where the pdbs files are located>" "<directory where the combined structures should be saved>"'
 
+import ast
 import glob
 import os
 import shutil
@@ -10,7 +11,7 @@ import sys
 from chimerax.core.commands import run
 
 
-def main(directory: str, target: str):
+def main(directory: str, target: str, subprocess: bool):
     """Script used to combine multiple structure fractions into one single structure. Processing is not applied as this will lead to a memory overflow.
 
     Args:
@@ -40,12 +41,17 @@ def main(directory: str, target: str):
             filename = file.split("/")[-1]
             os.makedirs(f"{directory}/{first_structure}", exist_ok=True)
             shutil.move(file, f"{directory}/{first_structure}/{filename}")
-    run(session, "exit")
+    if subprocess:
+        run(session, "exit")
 
 
 # directory = "/Users/till/Documents/UNI/Master_Bioinformatik-Universität_Wien/3.Semester/proteins/Multistru"
 # target = "/Users/till/Documents/UNI/Master_Bioinformatik-Universität_Wien/3.Semester/proteins/Multistru/Combined"
 # TODO: Remove in release
+subprocess = False
 directory = sys.argv[1]
 target = sys.argv[2]
-main(directory, target)
+if len(sys.argv) >= 4:
+    subprocess = ast.literal_eval(sys.argv[3])
+run(session, f"echo {subprocess}")
+main(directory, target, subprocess)

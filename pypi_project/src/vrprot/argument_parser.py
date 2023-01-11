@@ -2,19 +2,24 @@ from argparse import ArgumentParser
 
 from .util import AlphaFoldVersion, ColoringModes, Database
 
+COLORMODE_CHOICES = ", ".join(list(col.value for col in ColoringModes)[:5])
+
 
 def argument_parser(exec_name="main.py"):
+    """Argument parser function for the main function."""
     parser = ArgumentParser(prog=exec_name)
     subparsers = parser.add_subparsers(help="mode", dest="mode")
     fetch_parser = subparsers.add_parser(
         "fetch", help="Fetch proteins from the Alphafold database."
     )
+    # Argument parser for directly fetching a single structure
     fetch_parser.add_argument(
         "proteins",
         type=str,
         nargs=1,
         help="Proteins to fetch, which are separated by a comma.",
     )
+    # Argument parser for processing from a directory in which either a pdb, glb, ply or xyzrgb file is contained and proceeding from this step onward.
     file_parser = subparsers.add_parser(
         "local",
         help="Process proteins from files (.pdb, .glb, .ply, .xyzrgb) in a directory.",
@@ -26,6 +31,7 @@ def argument_parser(exec_name="main.py"):
         nargs=1,
         action="store",
     )
+    # Argument parser for fetching and processing a list of protein structures
     list_parser = subparsers.add_parser(
         "list",
         help="Process proteins from a file containing one UniProt ID in each line.",
@@ -36,6 +42,19 @@ def argument_parser(exec_name="main.py"):
         nargs=1,
         help="File from which the proteins are extracted from.",
     )
+    # Argument parser for for unpacking tar archived from a bulk download from AlphaFold DB. Furthermore multi fraction protein structures are combined into a single glb file.
+    bulk_parser = subparsers.add_parser(
+        "bulk",
+        help="Process proteins tar archive fetched as bulk download from AlphaFold DB",
+    )
+    bulk_parser.add_argument(
+        "source",
+        type=str,
+        help="Path to the tar archive",
+        nargs=1,
+        action="store",
+    )
+    # Argument parser for clearing the processing_files directory
     clear = subparsers.add_parser(
         "clear",
         help="Removes the processing_files directory",
@@ -136,13 +155,12 @@ def argument_parser(exec_name="main.py"):
         metavar="CHIMERAX_EXEC",
         help="Defines, where to find the ChimeraX executable.",
     )
-    colormode_choices = ", ".join(list(col.value for col in ColoringModes)[:5])
     parser.add_argument(
         "-color_mode",
         "--cm",
         type=str,
         nargs="?",
-        help=f"Defines the coloring mode which will be used to color the structure. Choices: {colormode_choices}... . For a full list, see README.",
+        help=f"Defines the coloring mode which will be used to color the structure. Choices: {COLORMODE_CHOICES}... . For a full list, see README.",
     )
     parser.add_argument(
         "-img_size",
@@ -163,4 +181,5 @@ def argument_parser(exec_name="main.py"):
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()
+
     return parser

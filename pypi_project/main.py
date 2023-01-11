@@ -11,7 +11,6 @@ def main():
     """Main function will take the arguments passed by the user and execute the program accordingly."""
     args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
-    log.info(f"Alphafold_Version: {parser.alphafold_ver}")
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
@@ -31,6 +30,8 @@ def main():
         with open(args.file[0]) as f:
             proteins = f.read().splitlines()
         parser.execute_from_object(proteins)
+    if args.mode == "bulk":
+        parser.execute_from_bulk(args.source[0])
 
 
 if __name__ == "__main__":
