@@ -2,7 +2,7 @@
 
 from src.vrprot.alphafold_db_parser import AlphafoldDBParser
 from src.vrprot.argument_parser import argument_parser
-from src.vrprot.util import Logger
+from src.vrprot.classes import Logger
 
 log = Logger("main")
 

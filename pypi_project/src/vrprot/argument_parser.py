@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from .util import AlphaFoldVersion, ColoringModes, Database
+from .classes import AlphaFoldVersion, ColoringModes, Database
 
 COLORMODE_CHOICES = ", ".join(list(col.value for col in ColoringModes)[:5])
 

@@ -15,10 +15,11 @@ def sample_pcd(
     ply_file,
     output,
     SAMPLE_POINTS=262144,
-    cube_no_line=CUBE_NO_LINES,
+    cube_no_line=None,
     debug=False,
 ):
-
+    if cube_no_line is None:
+        cube_no_line = CUBE_NO_LINES
     # get protein name & read mesh as .ply format
     mesh = o3d.io.read_triangle_mesh(ply_file)
     mesh.compute_vertex_normals()
@@ -64,6 +65,8 @@ def sample_pcd(
 
     ##sample point cloud
     mesh_combined = cube_no_line + mesh
+    if debug:
+        o3d.visualization.draw_geometries([mesh_combined])
     # sample points from merged mesh
     pcd = mesh_combined.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
 
