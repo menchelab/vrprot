@@ -13,9 +13,11 @@ from . import util
 from .overview_util import DEFAULT_OVERVIEW_FILE
 from .pointcloud2map_8bit import pcd_to_png
 from .sample_pointcloud import sample_pcd
-from .util import AlphaFoldVersion, ColoringModes
-from .util import FileTypes as FT
-from .util import Logger, ProteinStructure, batch
+from .classes import AlphaFoldVersion, ColoringModes
+from .classes import FileTypes as FT
+from .classes import Logger, ProteinStructure
+from .util import batch
+from extensions.ProteinStructureFetch.alphafold_to_vrnetzer.pypi_project.src.vrprot import classes
 
 
 @dataclass
@@ -61,7 +63,7 @@ class AlphafoldDBParser:
     )
     log: Logger = Logger("AlphafoldDBParser")
     img_size: int = 256
-    db: str = util.Database.AlphaFold.value
+    db: str = classes.Database.AlphaFold.value
     overwrite: bool = False
 
     def update_output_dir(self, output_dir):
@@ -165,7 +167,7 @@ class AlphafoldDBParser:
             self.log.debug(f"Checking if {protein} is already processed.")
             if not structure.existing_files[FT.pdb_file] or self.overwrite:
                 self.log.debug(f"Fetching {protein} from {self.db}.")
-                if self.db == util.Database.AlphaFold.value:
+                if self.db == classes.Database.AlphaFold.value:
                     if util.fetch_pdb_from_alphafold(
                         protein,
                         self.PDB_DIR,
@@ -174,7 +176,7 @@ class AlphafoldDBParser:
                         structure.existing_files[FT.pdb_file] = True
                     else:
                         self.not_fetched.add(protein)
-                elif self.db == util.Database.RCSB.value:
+                elif self.db == classes.Database.RCSB.value:
                     if util.fetch_pdb_from_rcsb(protein, self.PDB_DIR):
                         structure.existing_files[FT.pdb_file] = True
                     else:
