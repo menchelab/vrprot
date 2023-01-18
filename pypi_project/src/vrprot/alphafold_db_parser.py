@@ -302,6 +302,7 @@ class AlphafoldDBParser:
                     and structure.existing_files[FT.xyz_high_file]
                 )
                 and structure.existing_files[FT.ascii_file]
+                or (self.overwrite and structure.existing_files[FT.ascii_file])
             ):
                 pcd_to_png(
                     structure.ascii_file,
