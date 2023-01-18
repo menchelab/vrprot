@@ -232,13 +232,12 @@ def search_for_chimerax() -> str:
             drive = drive.replace("\\", "/")
             p = f"{drive}*/ChimeraX*/bin/ChimeraX*-console.exe"
             chimerax = glob.glob(p, recursive=True)
+            log.debug(chimerax)
             if len(chimerax) > 0:
                 chimerax = f'"{chimerax[0]}"'.replace("/", "\\")
                 break
         if len(chimerax) == 0:
             raise ChimeraXException("ChimeraX not found. Is it installed?")
-    if not (os.path.isfile(chimerax) and os.access(chimerax, os.X_OK)):
-        raise ChimeraXException("ChimeraX not found. Is it installed?")
     return chimerax
 
 
@@ -328,10 +327,12 @@ def call_ChimeraX_bundle(
         #     + ("%s " * len(arg)) % (tuple(arg))
         #     + '"'
         # )
+    elif platform.system() == "Windows":
+        command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
         command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
-        # command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+
     print(command)
     try:
         process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)

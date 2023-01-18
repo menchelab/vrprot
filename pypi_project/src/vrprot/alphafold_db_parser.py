@@ -60,7 +60,7 @@ class AlphafoldDBParser:
         }
     )
     log: Logger = Logger("AlphafoldDBParser")
-    img_size: int = 512
+    img_size: int = 256
     db: str = util.Database.AlphaFold.value
     overwrite: bool = False
 
