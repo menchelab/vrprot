@@ -60,63 +60,63 @@ def argument_parser(exec_name="main.py"):
         help="Removes the processing_files directory",
     )
     parser.add_argument(
-        "-pdb_file",
-        "--pdb",
+        "--pdb_file",
+        "-pdb",
         nargs="?",
         type=str,
         metavar="PDB_DIRECTORY",
         help="Defines, where to save the PDB Files.",
     )
     parser.add_argument(
-        "-glb_file",
-        "--glb",
+        "--glb_file",
+        "-glb",
         nargs="?",
         type=str,
         metavar="GLB_DIRECTORY",
         help="Defines, where to save the GLB Files.",
     )
     parser.add_argument(
-        "-ply_file",
-        "--ply",
+        "--ply_file",
+        "-ply",
         nargs="?",
         type=str,
         metavar="PLY_DIRECTORY",
         help="Defines, where to save the PLY Files.",
     )
     parser.add_argument(
-        "-cloud",
-        "--pcd",
+        "--cloud",
+        "-pcd",
         type=str,
         nargs="?",
         metavar="PCD_DIRECTORY",
         help="Defines, where to save the ASCII point clouds.",
     )
     parser.add_argument(
-        "-map",
-        "--m",
+        "--map",
+        "-m",
         type=str,
         nargs="?",
         metavar="MAP_DIRECTORY",
         help="Defines, where to save the color maps.",
     )
     parser.add_argument(
-        "-alphafold_version",
-        "--av",
+        "--alphafold_version",
+        "-av",
         type=str,
         nargs="?",
         choices=[ver.value for ver in AlphaFoldVersion],
         help="Defines, which version of Alphafold to use.",
     )
     parser.add_argument(
-        "-batch_size",
-        "--bs",
+        "--batch_size",
+        "-bs",
         type=int,
         nargs="?",
         metavar="BATCH_SIZE",
         help="Defines the size of the batch which will be processed",
     )
     parser.add_argument(
-        "-keep_pdb",
+        "--keep_pdb",
         "-kpdb",
         type=bool,
         nargs="?",
@@ -124,7 +124,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the PDB files after the GLB file is created. Default is True.",
     )
     parser.add_argument(
-        "-keep_glb",
+        "--keep_glb",
         "-kglb",
         type=bool,
         nargs="?",
@@ -132,7 +132,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the GLB files after the PLY file is created. Default is False.",
     )
     parser.add_argument(
-        "-keep_ply",
+        "--keep_ply",
         "-kply",
         type=bool,
         nargs="?",
@@ -140,7 +140,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the PLY files after the ASCII file is created. Default is False.",
     )
     parser.add_argument(
-        "-keep_ascii",
+        "--keep_ascii",
         "-kasc",
         type=bool,
         nargs="?",
@@ -148,30 +148,30 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.",
     )
     parser.add_argument(
-        "-chimerax",
-        "--ch",
+        "--chimerax",
+        "-ch",
         type=str,
         nargs="?",
         metavar="CHIMERAX_EXEC",
         help="Defines, where to find the ChimeraX executable.",
     )
     parser.add_argument(
-        "-color_mode",
-        "--cm",
+        "--color_mode",
+        "-cm",
         type=str,
         nargs="?",
         help=f"Defines the coloring mode which will be used to color the structure. Choices: {COLORMODE_CHOICES}... . For a full list, see README.",
     )
     parser.add_argument(
-        "-img_size",
-        "--imgs",
+        "--img_size",
+        "-imgs",
         type=int,
         nargs="?",
         help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
     )
     parser.add_argument(
-        "-database",
-        "--db",
+        "--database",
+        "-db",
         type=str,
         nargs="?",
         choices=[db.value for db in Database],
