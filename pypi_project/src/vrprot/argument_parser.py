@@ -1,20 +1,25 @@
 from argparse import ArgumentParser
 
-from .util import AlphaFoldVersion, ColoringModes
+from .classes import AlphaFoldVersion, ColoringModes, Database
+
+COLORMODE_CHOICES = ", ".join(list(col.value for col in ColoringModes)[:5])
 
 
 def argument_parser(exec_name="main.py"):
+    """Argument parser function for the main function."""
     parser = ArgumentParser(prog=exec_name)
     subparsers = parser.add_subparsers(help="mode", dest="mode")
     fetch_parser = subparsers.add_parser(
         "fetch", help="Fetch proteins from the Alphafold database."
     )
+    # Argument parser for directly fetching a single structure
     fetch_parser.add_argument(
         "proteins",
         type=str,
         nargs=1,
         help="Proteins to fetch, which are separated by a comma.",
     )
+    # Argument parser for processing from a directory in which either a pdb, glb, ply or xyzrgb file is contained and proceeding from this step onward.
     file_parser = subparsers.add_parser(
         "local",
         help="Process proteins from files (.pdb, .glb, .ply, .xyzrgb) in a directory.",
@@ -26,6 +31,7 @@ def argument_parser(exec_name="main.py"):
         nargs=1,
         action="store",
     )
+    # Argument parser for fetching and processing a list of protein structures
     list_parser = subparsers.add_parser(
         "list",
         help="Process proteins from a file containing one UniProt ID in each line.",
@@ -36,68 +42,81 @@ def argument_parser(exec_name="main.py"):
         nargs=1,
         help="File from which the proteins are extracted from.",
     )
+    # Argument parser for for unpacking tar archived from a bulk download from AlphaFold DB. Furthermore multi fraction protein structures are combined into a single glb file.
+    bulk_parser = subparsers.add_parser(
+        "bulk",
+        help="Process proteins tar archive fetched as bulk download from AlphaFold DB",
+    )
+    bulk_parser.add_argument(
+        "source",
+        type=str,
+        help="Path to the tar archive",
+        nargs=1,
+        action="store",
+    )
+    # Argument parser for clearing the processing_files directory
     clear = subparsers.add_parser(
         "clear",
         help="Removes the processing_files directory",
     )
     parser.add_argument(
-        "-pdb_file",
-        "--pdb",
+        "--pdb_file",
+        "-pdb",
         nargs="?",
         type=str,
         metavar="PDB_DIRECTORY",
         help="Defines, where to save the PDB Files.",
     )
     parser.add_argument(
-        "-glb_file",
-        "--glb",
+        "--glb_file",
+        "-glb",
         nargs="?",
         type=str,
         metavar="GLB_DIRECTORY",
         help="Defines, where to save the GLB Files.",
     )
     parser.add_argument(
-        "-ply_file",
-        "--ply",
+        "--ply_file",
+        "-ply",
         nargs="?",
         type=str,
         metavar="PLY_DIRECTORY",
         help="Defines, where to save the PLY Files.",
     )
     parser.add_argument(
-        "-cloud",
-        "--pcd",
+        "--cloud",
+        "-pcd",
         type=str,
         nargs="?",
         metavar="PCD_DIRECTORY",
         help="Defines, where to save the ASCII point clouds.",
     )
     parser.add_argument(
-        "-map",
-        "--m",
+        "--map",
+        "-m",
         type=str,
         nargs="?",
         metavar="MAP_DIRECTORY",
         help="Defines, where to save the color maps.",
     )
     parser.add_argument(
-        "-alphafold_version",
-        "--av",
+        "--alphafold_version",
+        "-av",
         type=str,
         nargs="?",
-        choices=list(AlphaFoldVersion),
+        choices=[ver.value for ver in AlphaFoldVersion],
         help="Defines, which version of Alphafold to use.",
     )
     parser.add_argument(
-        "-batch_size",
-        "--bs",
+        "--batch_size",
+        "-bs",
         type=int,
         nargs="?",
         metavar="BATCH_SIZE",
         help="Defines the size of the batch which will be processed",
     )
     parser.add_argument(
-        "-keep_pdb",
+        "--keep_pdb",
         "-kpdb",
         type=bool,
         nargs="?",
@@ -105,7 +124,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the PDB files after the GLB file is created. Default is True.",
     )
     parser.add_argument(
-        "-keep_glb",
+        "--keep_glb",
         "-kglb",
         type=bool,
         nargs="?",
@@ -113,7 +132,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the GLB files after the PLY file is created. Default is False.",
     )
     parser.add_argument(
-        "-keep_ply",
+        "--keep_ply",
         "-kply",
         type=bool,
         nargs="?",
@@ -121,7 +140,7 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the PLY files after the ASCII file is created. Default is False.",
     )
     parser.add_argument(
-        "-keep_ascii",
+        "--keep_ascii",
         "-kasc",
         type=bool,
         nargs="?",
@@ -129,23 +148,38 @@ def argument_parser(exec_name="main.py"):
         help="Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.",
     )
     parser.add_argument(
-        "-chimerax",
-        "--ch",
+        "--chimerax",
+        "-ch",
         type=str,
         nargs="?",
         metavar="CHIMERAX_EXEC",
         help="Defines, where to find the ChimeraX executable.",
     )
-    colormode_choices = ", ".join(list(ColoringModes.__members__.keys())[:5])
     parser.add_argument(
-        "-color_mode",
-        "--cm",
+        "--color_mode",
+        "-cm",
         type=str,
         nargs="?",
-        help=f"Defines the coloring mode which will be used to color the structure. Choices: {colormode_choices}... . For a full list, see README.",
+        help=f"Defines the coloring mode which will be used to color the structure. Choices: {COLORMODE_CHOICES}... . For a full list, see README.",
+    )
+    parser.add_argument(
+        "--img_size",
+        "-imgs",
+        type=int,
+        nargs="?",
+        help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
+    )
+    parser.add_argument(
+        "--database",
+        "-db",
+        type=str,
+        nargs="?",
+        choices=[db.value for db in Database],
+        help=f"Defines the database from which the proteins will be fetched.",
     )
 
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()
+
     return parser

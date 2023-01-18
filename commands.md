@@ -17,9 +17,9 @@
 
 - New version number in pyproject.toml when uploading a new version of the project.
 
-username = **token**
+username = \_\_token\_\_
 
-password = **API_TOKEN**
+password = <API_TOKEN>
 
 To install project from test.pypi.org:
 

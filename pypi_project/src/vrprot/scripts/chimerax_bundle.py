@@ -137,6 +137,12 @@ class Bundle:
         """
         self.pipeline.extend(["sel", "color sel bynucleotide"])
 
+    def mfpl_coloring(self):
+        """
+        Add Max F Perutz Lab coloring.
+        """
+        self.pipeline.extend(["sel", "color sel #00cac0"])
+
     ## Complete processes
     def mode_ss_coloring(self, colors, mode):
         """
@@ -194,6 +200,14 @@ class Bundle:
         self.change_display_to(mode)
         self.nucleotide_coloring()
 
+    def mode_mfpl_coloring(self, mode):
+        """Will color the protein structures in the Max Ferdinand Perutz Labs turquoise.
+        Args:
+            mode (str): Display mode to use.
+        """
+        self.change_display_to(mode)
+        self.mfpl_coloring()
+
 
 def main():
     path = sys.argv[1]
@@ -214,12 +228,14 @@ def main():
         "hydrophobic": bundle.hydrophobic_coloring,
         "bFactor": bundle.mode_bFactor_coloring,
         "nucleotide": bundle.mode_nucleotide_coloring,
+        "mfpl": bundle.mode_mfpl_coloring,
     }
     mode, coloring, _ = sys.argv[3].split("_")
     style = None
     if mode in ["stick", "sphere", "ball"]:
         style = mode
         mode = "atoms"
+
     if coloring == "ss":
         """
         This part will be executed, if the argument is ss_coloring, i.e. coloring the secondary structures.
@@ -233,11 +249,16 @@ def main():
             bundle.change_style_to(style)
     elif coloring in ["electrostatic", "hydrophobic"]:
         cases[coloring]()
+
     else:
+        # General coloring cases
         cases[coloring](mode)
         if style is not None:
+            # if mode was ["stick", "sphere", "ball"] atoms is the new mode and style is one out of ["stick", "sphere", "ball"]
             bundle.change_style_to(style)
+
     bundle.pipeline.extend(["save", "close"])
+
     for structure in list(file_names):
         run(session, f"echo {structure}")
         bundle.open_file(os.path.join(path, structure))

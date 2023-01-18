@@ -27,12 +27,13 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
     # xyzrgb file comes with RGB stores as float. RGB values between 0.0 and 1.0 and XYZ values between -x and x -> TODO: Range?
     f = open(ascii_file, "r")
 
-    img_size = 512
-
+    log.debug(f"Image size is: {img_size}x{img_size}")
     x, y, z = [], [], []
+
     n1_X = []
     n1_Y = []
     n1_Z = []
+
     n2_X = []
     n2_Y = []
     n2_Z = []
@@ -43,10 +44,12 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
 
     lines = list(f.readlines())
 
-    for i in range(1048576):
+    log.debug(f"source is {ascii_file}")
+
+    for i in range(img_size * img_size):
         # print(i)
         if i >= len(lines):
-            # add sseros
+            # add zeros
             x.append(0)
             y.append(0)
             z.append(0)
@@ -58,13 +61,17 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
         else:
             line = lines[i]
             new_line = list(line.strip().split(" "))
-            #!
-            #!convert float RGB values [0,1] to [0,255] = intvalues of RGB
-            #!
-            new_line[3] = float(new_line[3]) * 255  # type: ignore
-            new_line[4] = float(new_line[4]) * 255  # type: ignore
-            new_line[5] = float(new_line[5]) * 255  # type: ignore
 
+            #!
+            #!convert float RGB values [0,1] to [0,255] = int values of RGB
+            #!
+            try:
+                new_line[3] = float(new_line[3]) * 255  # type: ignore
+                new_line[4] = float(new_line[4]) * 255  # type: ignore
+                new_line[5] = float(new_line[5]) * 255  # type: ignore
+            except IndexError as e:
+                log.debug(f"{i},{new_line}")
+                raise IndexError(e)
             if len(new_line) >= 3:
                 # Extract xyz values
                 p_x = float(new_line[0])
@@ -105,9 +112,9 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
     # print(max_x-min_x,max_y-min_y,max_z-min_z)
     for k in range(len(x)):
 
-        xn = int(float((x[k] - min_x) / (max_x - min_x)) * 65536)  # 65535
-        yn = int(float((y[k] - min_y) / (max_y - min_y)) * 65536)
-        zn = int(float((z[k] - min_z) / (max_z - min_z)) * 65536)
+        xn = int(float((x[k] - min_x) / (max_x - min_x)) * 65535)  # 65535
+        yn = int(float((y[k] - min_y) / (max_y - min_y)) * 65535)
+        zn = int(float((z[k] - min_z) / (max_z - min_z)) * 65535)
         # f.write('%s,%s,%s,%.6f,%.6f,%.6f,%s\n' %(n,n,n,xn,yn,l_z[n],l_rest[n]))
         # if k == 500:
         #     print(xn, yn, zn)
@@ -119,9 +126,11 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
         ex = xn // 255
         ey = yn // 255
         ez = zn // 255
+
         n1_X.append(sx)
         n1_Y.append(sy)
         n1_Z.append(sz)
+
         n2_X.append(ex)
         n2_Y.append(ey)
         n2_Z.append(ez)
@@ -131,8 +140,9 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
     # Fill arrays with xyz(8bit) / rgb(16bit) values
     ####################################
     coordsarray_1 = [(0, 0, 0)] * img_size * img_size
-    coordsarray_2 = [(0, 0, 0)] * img_size * img_size
-    colarray = [(0, 0, 0)] * img_size * img_size
+    coordsarray_2 = coordsarray_1.copy()
+    colarray = coordsarray_1.copy()
+
     for i in range(0, img_size * img_size):
         coordsarray_1[i] = (n1_X[i], n1_Y[i], n1_Z[i])
         coordsarray_2[i] = (n2_X[i], n2_Y[i], n2_Z[i])
@@ -162,16 +172,19 @@ def pcd_to_png(ascii_file, rgb_file, xyz_low_file, xyz_high_file, img_size=512):
     imagec.save(rgb_file)
     log.debug(f"RGB map saved to {rgb_file}")
 
+    # Write XYZ values to bmp files
     imagel = Image.new("RGB", (img_size, img_size))
-    imageh = Image.new("RGB", (img_size, img_size))
     imagel.putdata(coordsarray_1)  # type: ignore
-    imageh.putdata(coordsarray_2)  # type: ignore
     save_location, _ = ntpath.split(xyz_high_file)
     os.makedirs(save_location, exist_ok=True)
+    imagel.save(xyz_high_file)
+
+    imageh = Image.new("RGB", (img_size, img_size))
+    imageh.putdata(coordsarray_2)  # type: ignore
     save_location, _ = ntpath.split(xyz_low_file)
     os.makedirs(save_location, exist_ok=True)
-    imagel.save(xyz_high_file)
     imageh.save(xyz_low_file)
+
     log.debug(f"XYZ maps saved to {xyz_high_file} and {xyz_low_file}")
     return rgb_file, xyz_high_file, xyz_low_file
 

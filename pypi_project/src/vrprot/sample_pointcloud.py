@@ -15,9 +15,11 @@ def sample_pcd(
     ply_file,
     output,
     SAMPLE_POINTS=262144,
-    cube_no_line=CUBE_NO_LINES,
+    cube_no_line=None,
+    debug=False,
 ):
-
+    if cube_no_line is None:
+        cube_no_line = CUBE_NO_LINES
     # get protein name & read mesh as .ply format
     mesh = o3d.io.read_triangle_mesh(ply_file)
     mesh.compute_vertex_normals()
@@ -63,6 +65,8 @@ def sample_pcd(
 
     ##sample point cloud
     mesh_combined = cube_no_line + mesh
+    if debug:
+        o3d.visualization.draw_geometries([mesh_combined])
     # sample points from merged mesh
     pcd = mesh_combined.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
 
@@ -72,10 +76,8 @@ def sample_pcd(
     os.makedirs(save_location, exist_ok=True)
     o3d.io.write_point_cloud(output, pcd)
     # # Debug to view structure with cube.
-    # cube = o3d.io.read_triangle_mesh("Cube.ply")
-    # cube.compute_vertex_normals()
-    # o3d.visualization.draw_geometries([mesh, cube, mesh_bounding_box_new])
-    # o3d.visualization.draw_geometries([pcd])
+    if debug:
+        o3d.visualization.draw_geometries([pcd, cube_no_line, mesh_bounding_box_new])
     return scale
 
 
@@ -94,10 +96,3 @@ def run_for_batch():
             scale = sample_pcd(file, output)
             write_scale(protein, scale)
             # os.remove(file)
-
-
-if __name__ == "__main__":
-    from sys import argv
-
-    scale = sample_pcd(argv[1])
-    # run_for_batch()

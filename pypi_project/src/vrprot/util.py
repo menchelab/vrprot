@@ -1,154 +1,26 @@
 import glob
-import logging
 import ntpath
 import os
 import platform
 import shutil
 import subprocess as sp
 import sys
-from dataclasses import dataclass
-from enum import Enum, auto
 
 import requests
 import trimesh
 from trimesh.exchange import ply
+from trimesh.exchange.export import export_mesh
 
-from .exceptions import StructureNotFoundError
+from .classes import AlphaFoldVersion, Logger
+from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
 # wd = os.path.dirname(__file__)  # for development
 WD = os.path.abspath(wd)  # for development
 FILE_DIR = os.path.dirname(__file__)
-SCRITPS = os.path.join(FILE_DIR, "scripts")
-
-
-class Logger:
-    """
-    Implementation based on https://dotnettutorials.net/lesson/customized-logging-in-python/
-    """
-
-    def __init__(self, name, level=logging.DEBUG):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setLevel(level)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s %(levelname)s: %(message)s",
-            datefmt="%m/%d/%Y %I:%M:%S%p",
-        )
-        consoleHandler.setFormatter(formatter)
-        self.logger.addHandler(consoleHandler)
-
-    def info(self, message):
-        self.logger.info(message)
-
-    def debug(self, message):
-        self.logger.debug(message)
-
-    def warning(self, message):
-        self.logger.warning(message)
-
-    def error(self, message):
-        self.logger.error(message)
-
+SCRIPTS = os.path.join(FILE_DIR, "scripts")
 
 log = Logger("util")
-
-
-class FileTypes(Enum):
-    pdb_file = auto()
-    glb_file = auto()
-    ply_file = auto()
-    ascii_file = auto()
-    rgb_file = auto()
-    xyz_low_file = auto()
-    xyz_high_file = auto()
-
-
-@dataclass
-class ProteinStructure:
-    uniprot_id: str
-    file_name: str = ""
-    pdb_file: str = ""
-    glb_file: str = ""
-    ply_file: str = ""
-    ascii_file: str = ""
-    rgb_file: str = ""
-    xyz_low_file: str = ""
-    xyz_high_file: str = ""
-    existing_files: dict = None
-    scale: float = 1.0
-
-    def __post_init__(self):
-        self.update_existence()
-
-    def update_existence(self):
-        """Checks whether a fail is already existance in the corresponding directory, if so they will be skipped in some steps of the process."""
-        if self.existing_files is None:
-            self.existing_files = {}
-        files = [
-            self.__dict__[file] for file in self.__dict__.keys() if "_file" in file
-        ]
-        for file, file_type in zip(files, FileTypes.__members__):
-            exists = False
-            if os.path.exists(file):
-                exists = True
-            self.existing_files[FileTypes.__members__[file_type]] = exists
-
-
-class ColoringModes(Enum):
-    cartoons_ss_coloring = "cartoons_ss_coloring"
-    cartoons_rainbow_coloring = "cartoons_rainbow_coloring"
-    cartoons_heteroatom_coloring = "cartoons_heteroatom_coloring"
-    cartoons_polymer_coloring = "cartoons_polymer_coloring"
-    cartoons_chain_coloring = "cartoons_chain_coloring"
-    cartoons_bFactor_coloring = "cartoons_bFactor_coloring"
-    cartoons_nucleotide_coloring = "cartoons_nucleotide_coloring"
-    surface_ss_cooloring = "surface_ss_cooloring"
-    surface_rainbow_cooloring = "surface_rainbow_cooloring"
-    surface_heteroatom_cooloring = "surface_heteroatom_cooloring"
-    surface_polymer_cooloring = "surface_polymer_cooloring"
-    surface_chain_cooloring = "surface_chain_cooloring"
-    surface_electrostatic_coloring = "surface_electrostatic_coloring"
-    surface_hydrophic_coloring = "surface_hydrophic_coloring"
-    surface_bFactor_coloring = "surface_bFactor_coloring"
-    surface_nucleotide_coloring = "cartoons_nucleotide_coloring"
-    stick_ss_coloring = "stick_ss_coloring"
-    stick_rainbow_coloring = "stick_rainbow_coloring"
-    stick_heteroatom_coloring = "stick_heteroatom_coloring"
-    stick_polymer_coloring = "stick_polymer_coloring"
-    stick_chain_coloring = "stick_chain_coloring"
-    stick_bFactor_coloring = "stick_bFactor_coloring"
-    stick_nucleotide_coloring = "stick_nucleotide_coloring"
-    ball_ss_coloring = "ball_ss_coloring"
-    ball_rainbow_coloring = "ball_rainbow_coloring"
-    ball_heteroatom_coloring = "ball_heteroatom_coloring"
-    ball_polymer_coloring = "ball_polymer_coloring"
-    ball_chain_coloring = "ball_chain_coloring"
-    ball_bFactor_coloring = "ball_bFactor_coloring"
-    ball_nucleotide_coloring = "ball_nucleotide_coloring"
-    sphere_ss_coloring = "sphere_ss_coloring"
-    sphere_rainbow_coloring = "sphere_rainbow_coloring"
-    sphere_heteroatom_coloring = "sphere_heteroatom_coloring"
-    sphere_polymer_coloring = "sphere_polymer_coloring"
-    sphere_chain_coloring = "sphere_chain_coloring"
-    sphere_bFactor_coloring = "sphere_bFactor_coloring"
-    sphere_nucleotide_coloring = "sphere_nucleotide_coloring"
-
-    @staticmethod
-    def list_of_modes():
-        return [mode.value for mode in ColoringModes]
-
-
-class AlphaFoldVersion(Enum):
-    v1 = "v1"
-    v2 = "v2"
-    v3 = "v3"
-    v4 = "v4"
-
-    @staticmethod
-    def list_of_versions():
-        return list(map(lambda c: c.value, AlphaFoldVersion))
 
 
 def fetch_pdb_from_rcsb(uniprot_id: str, save_location: str) -> None:
@@ -207,14 +79,14 @@ def fetch_pdb(uniprot_id: str, url: str, save_location: str, file_name: str) -> 
     return success
 
 
-def search_for_chimerax():
+def search_for_chimerax() -> str:
     """Will search for the chimerax executeable on the system. Does not work with windows so far."""
     if platform.system() == "Darwin":
         locations = glob.glob(
             "/Applications/ChimeraX*.app/Contents/MacOS/chimerax", recursive=True
         )
         if len(locations) == 0:
-            raise Exception("ChimeraX not found. Is it installed?")
+            raise ChimeraXException("ChimeraX not found. Is it installed?")
         chimerax = locations[0]
     elif platform.system() == "Linux":
         chimerax = "chimerax"
@@ -231,8 +103,9 @@ def search_for_chimerax():
                 chimerax = f'"{chimerax[0]}"'.replace("/", "\\")
                 break
         if len(chimerax) == 0:
-            raise Exception("ChimeraX not found. Is it installed?")
-
+            raise ChimeraXException("ChimeraX not found. Is it installed?")
+    if not (os.path.isfile(chimerax) and os.access(chimerax, os.X_OK)):
+        raise ChimeraXException("ChimeraX not found. Is it installed?")
     return chimerax
 
 
@@ -253,7 +126,7 @@ def run_chimerax_coloring_script(
         colors (list, optional): List containing three colors. The first is the color of coil. The second will be the color of the helix. And the last color is the color of the strands. Defaults to ["red", "green", "blue"] i.e. coils will be red, helix will be green and stands will be blue.
     """
     # Define script to call.
-    bundle = os.path.join(SCRITPS, "chimerax_bundle.py")
+    bundle = os.path.join(SCRIPTS, "chimerax_bundle.py")
     # Setup the arguments to call with the script.
     file_string = ""
     for file in proteins:
@@ -311,17 +184,26 @@ def call_ChimeraX_bundle(
     arg.extend(script_arg)
     if platform.system() == "Linux":
         # for Linux we can use off screen render. This does not work on Windows or macOS
-        command = (
-            '%s --offscreen --script "' % chimerax
-            + ("%s " * len(arg)) % (tuple(arg))
-            + '"'
-        )
+        command = [
+            chimerax,
+            "--offscreen",
+            "--script",
+            ("%s " * len(arg)) % (tuple(arg)),
+        ]
+        # command = (
+        #     '%s --offscreen --script "' % chimerax
+        #     + ("%s " * len(arg)) % (tuple(arg))
+        #     + '"'
+        # )
     else:
         # call chimeraX with commandline in a subprocess
-        command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+        command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
+        # command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+    print(command)
     try:
-        process = sp.Popen(command, shell=True, stdout=sp.DEVNULL, stdin=sp.PIPE)
-
+        process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
+        # wait until chimeraX is finished with processing
+        process.wait()
     except Exception as e:
         # raise an expecting if chimeraX could not be found
         log.error(
@@ -329,11 +211,10 @@ def call_ChimeraX_bundle(
             + chimerax
             + "\nIf not please correct it."
         )
-    # wait until chimeraX is finished with processing
-    process.wait()
+        raise Exception
 
 
-def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
+def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> None:
     """
     This function converts a glb file to a ply file.
 
@@ -343,13 +224,20 @@ def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
     save_location, _ = ntpath.split(glb_file)
     os.makedirs(save_location, exist_ok=True)
     mesh = trimesh.load(glb_file, force="mesh")
-    file = ply.export_ply(mesh)
-    with open(ply_file, "wb+") as f:
-        f.write(file)
+    if debug:
+        mesh.show()
+    export_mesh(mesh, ply_file, "ply")
+    ## Deprecated
+    # file = ply.export_ply(mesh)
+    # with open(ply_file, "wb+") as f:
+    #     f.write(file)
+    if debug:
+        mesh = trimesh.load(ply_file, force="mesh")
+        mesh.show()
     return True
 
 
-def batch(funcs: list[object], proteins: list[str], batch_size: int=50) -> None:
+def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> None:
     """Will run the functions listed in funcs in a batched process."""
     start = 0
     end = batch_size
@@ -368,3 +256,14 @@ def remove_dirs(directory):
     """Removes a directory an all underlying subdirectories. WARNING this can lead to los of data!"""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
+
+
+def combine_fractions(directory: str, target: str, chimerax: str):
+    """Combines multi fraction protein structure to a single structure and exports it as glb file."""
+    if chimerax is None:
+        chimerax = search_for_chimerax()
+    script = os.path.join(SCRIPTS, "combine_structures.py")
+    command = [chimerax, "--script", f"{script} {directory} {target} True"]
+    process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
+    process.wait()
+    print("All multi fraction structures handled.")
