@@ -1,5 +1,4 @@
 import glob
-
 import ntpath
 import os
 import platform
@@ -11,7 +10,9 @@ import subprocess as sp
 import requests
 import trimesh
 from trimesh.exchange import ply
+from trimesh.exchange.export import export_mesh
 
+from .classes import AlphaFoldVersion, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
 from .classes import AlphaFoldVersion,Logger
 
@@ -214,7 +215,7 @@ def call_ChimeraX_bundle(
         raise Exception
 
 
-def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
+def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> None:
     """
     This function converts a glb file to a ply file.
 
@@ -224,9 +225,16 @@ def convert_glb_to_ply(glb_file: str, ply_file: str) -> None:
     save_location, _ = ntpath.split(glb_file)
     os.makedirs(save_location, exist_ok=True)
     mesh = trimesh.load(glb_file, force="mesh")
-    file = ply.export_ply(mesh)
-    with open(ply_file, "wb+") as f:
-        f.write(file)
+    if debug:
+        mesh.show()
+    export_mesh(mesh, ply_file, "ply")
+    ## Deprecated
+    # file = ply.export_ply(mesh)
+    # with open(ply_file, "wb+") as f:
+    #     f.write(file)
+    if debug:
+        mesh = trimesh.load(ply_file, force="mesh")
+        mesh.show()
     return True
 
 

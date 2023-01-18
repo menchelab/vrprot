@@ -7,9 +7,12 @@ import traceback
 from argparse import Namespace
 from dataclasses import dataclass, field
 
-from . import exceptions
+from . import classes, exceptions
 from . import overview_util as ov_util
 from . import util
+from .classes import AlphaFoldVersion, ColoringModes
+from .classes import FileTypes as FT
+from .classes import Logger, ProteinStructure
 from .overview_util import DEFAULT_OVERVIEW_FILE
 from .pointcloud2map_8bit import pcd_to_png
 from .sample_pointcloud import sample_pcd
@@ -277,7 +280,7 @@ class AlphafoldDBParser:
                 scale = sample_pcd(
                     structure.ply_file,
                     structure.ascii_file,
-                    SAMPLE_POINTS=self.img_size * self.img_size,
+                    self.img_size * self.img_size,
                 )
                 structure.existing_files[FT.ascii_file] = True
                 structure.scale = scale

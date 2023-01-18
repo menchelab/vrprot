@@ -6,7 +6,7 @@ from .util import WD
 from .classes import  ColoringModes, ProteinStructure
 
 STATIC_PATH = os.path.join(WD, "static")
-CSV_PATH = os.path.join(STATIC_PATH, "static")
+CSV_PATH = os.path.join(STATIC_PATH, "csv")
 DEFAULT_OVERVIEW_FILE = os.path.join(WD, "static", "csv", "overview.csv")
 COLUMNS = ["uniprot_id", "pdb_file", "multi_structure", "parts"]
 for mode in ColoringModes.__dict__.values():
