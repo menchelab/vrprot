@@ -5,8 +5,6 @@ import platform
 import shutil
 import subprocess as sp
 
-
-
 import requests
 import trimesh
 from trimesh.exchange import ply
@@ -14,7 +12,6 @@ from trimesh.exchange.export import export_mesh
 
 from .classes import AlphaFoldVersion, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
-from .classes import AlphaFoldVersion,Logger
 
 wd = os.path.dirname(".")  # for final executable
 # wd = os.path.dirname(__file__)  # for development
@@ -22,6 +19,7 @@ WD = os.path.abspath(wd)  # for development
 FILE_DIR = os.path.dirname(__file__)
 SCRIPTS = os.path.join(FILE_DIR, "scripts")
 log = Logger("util")
+
 
 def fetch_pdb_from_rcsb(uniprot_id: str, save_location: str) -> None:
     file_name = uniprot_id + ".pdb"
@@ -232,6 +230,7 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     # file = ply.export_ply(mesh)
     # with open(ply_file, "wb+") as f:
     #     f.write(file)
+    log.debug("NOW PLY")
     if debug:
         mesh = trimesh.load(ply_file, force="mesh")
         mesh.show()

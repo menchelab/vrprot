@@ -72,7 +72,7 @@ def run_tests_for_structure(structure):
         #     continue
         print("Testing coloring mode: " + cm.value)
         test_chimerax_process(structure, cm.value)
-        test_glb_ply_convert(structure)
+        test_glb_ply_convert(structure, True)
         text_sample_pcd(structure, True)
         test_ascii_to_png(structure)
 

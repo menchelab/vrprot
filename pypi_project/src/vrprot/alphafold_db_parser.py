@@ -16,11 +16,7 @@ from .classes import Logger, ProteinStructure
 from .overview_util import DEFAULT_OVERVIEW_FILE
 from .pointcloud2map_8bit import pcd_to_png
 from .sample_pointcloud import sample_pcd
-from .classes import AlphaFoldVersion, ColoringModes
-from .classes import FileTypes as FT
-from .classes import Logger, ProteinStructure
 from .util import batch
-from extensions.ProteinStructureFetch.alphafold_to_vrnetzer.pypi_project.src.vrprot import classes
 
 
 @dataclass
