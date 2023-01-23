@@ -52,6 +52,7 @@ class AlphafoldDBParser:
     overview_file: str = DEFAULT_OVERVIEW_FILE
     structures: dict[str, ProteinStructure] = field(default_factory=lambda: {})
     not_fetched: list[str] = field(default_factory=lambda: set())
+    already_processed: list[str] = field(default_factory=lambda: set())
     keep_temp: dict[FT, bool] = field(
         default_factory=lambda: {
             FT.pdb_file: False,
@@ -411,11 +412,13 @@ class AlphafoldDBParser:
         """
         Filter out the proteins that have already been processed.
         """
-        return [
-            protein
-            for protein in proteins
-            if not self.output_exists(self.structures[protein])
-        ]
+        to_process = []
+        for protein in proteins:
+            if not self.output_exists(self.structures[protein]):
+                to_process.append(protein)
+            else:
+                self.already_processed.add(protein)
+        return to_process
 
     def output_exists(self, structures: ProteinStructure) -> bool:
         """
