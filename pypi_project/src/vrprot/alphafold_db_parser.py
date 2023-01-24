@@ -66,6 +66,7 @@ class AlphafoldDBParser:
     db: str = classes.Database.AlphaFold.value
     overwrite: bool = False
     images: bool = False
+    num_cached: int = None
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -168,6 +169,8 @@ class AlphafoldDBParser:
                 f"All structures of this batch: {proteins} are already processed. Skipping this batch."
             )
             return
+        tmp = util.free_space(self.DIRS, len(proteins), self.num_cached)
+        self.not_fetched = set()
         for protein in proteins:
             structure = self.structures[protein]
             self.log.debug(f"Checking if {protein} is already processed.")
@@ -191,6 +194,9 @@ class AlphafoldDBParser:
                 self.log.debug(
                     f"Structure {protein} is already processed and overwrite is not allowed."
                 )
+        util.remove_cached_files(
+            tmp, self.num_cached, len(proteins) - len(self.not_fetched)
+        )
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """

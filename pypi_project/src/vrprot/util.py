@@ -4,13 +4,14 @@ import os
 import platform
 import shutil
 import subprocess as sp
+import time
 
 import requests
 import trimesh
 from trimesh.exchange import ply
 from trimesh.exchange.export import export_mesh
 
-from .classes import AlphaFoldVersion, Logger
+from .classes import AlphaFoldVersion, FileTypes, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
@@ -255,7 +256,7 @@ def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> Non
 
 
 def remove_dirs(directory):
-    """Removes a directory an all underlying subdirectories. WARNING this can lead to los of data!"""
+    """Removes a directory an all underlying subdirectories. WARNING this can lead to loss of data!"""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
 
@@ -269,3 +270,42 @@ def combine_fractions(directory: str, target: str, chimerax: str):
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
     print("All multi fraction structures handled.")
+
+
+def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
+    """Removes as many old files until there is enough space for the new files.
+
+    Args:
+        DIRS (dict): Maps File Types to directories
+        space (int): How mach space is maximal available.
+        new (int): How much space is needed for the new files.
+    """
+    if space is None:
+        return
+    if space <= 0:
+        return
+    tmp = {}
+    for ft, _dir in DIRS.items():
+        if ft == "output":
+            continue
+        if os.path.isdir(_dir):
+            files = [os.path.join(_dir, f) for f in os.listdir(_dir)]
+            if space - len(files) < new:
+                files = {f: time.ctime(os.path.getmtime(f)) for f in files}
+                files = sorted(files.items(), key=lambda x: x[1], reverse=True)
+                while space - len(files) < new:
+                    file = files.pop()
+                    if ft not in tmp:
+                        tmp[ft] = []
+                    tmp[ft].append(file[0])
+    return tmp
+
+
+def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
+    """Removes all cached files."""
+    if space is None:
+        return
+    for ft, files in tmp.items():
+        while space - len(files) <= new:
+            file = files.pop()
+            os.remove(file)
