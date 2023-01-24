@@ -1,4 +1,5 @@
 # Author: Till Pascal Oblau
+import argparse
 import os
 import sys
 
@@ -10,7 +11,7 @@ class Bundle:
     Object to be run as python script during chimeraX runtime.
     """
 
-    def __init__(self, session, path, target=None):
+    def __init__(self, session, path, target, images=None):
         """
         Initialization of the Bundle Class. Will define the chimeraX session
         which is needed by the ChimeraX api and will define the colors for the
@@ -23,6 +24,7 @@ class Bundle:
         self.session = session
         self.wd = os.path.abspath(".")
         self.target = target
+        self.images = images
         self.pipeline = ["N/A"]
         run(self.session, f"cd {path}")
 
@@ -35,10 +37,10 @@ class Bundle:
         """
         Function to executed the pipeline and save the file as glb
         """
-        if self.target is None:
-            save_loc = f"{self.wd}/processing_files/glbs/{structure[:-3]}glb"
-        else:
-            save_loc = f"{self.target}/{structure[:-3]}glb"
+        file_name = structure[:-3]
+        save_loc = f"{self.target}/{file_name}glb"
+        if self.images:
+            self.take_screenshot(file_name)
         self.pipeline[-2] = f"save {save_loc}"
         for command in self.pipeline:
             run(self.session, f"echo {command}")
@@ -208,16 +210,69 @@ class Bundle:
         self.change_display_to(mode)
         self.mfpl_coloring()
 
+    def take_screenshot(self, structure):
+        """
+        Takes a screenshot of the current scene and saves it to the specified path.
+        """
+        unselect = "~select"
+        view = "view"
+        save = f"save {self.images}/{structure}png width 512 height 512 supersample 3 transparentBackground true"
+        select = f"select"
+        self.pipeline = (
+            self.pipeline[:-2] + [unselect, view, save, select] + self.pipeline[-2:]
+        )
+
 
 def main():
-    path = sys.argv[1]
-    file_names = sys.argv[2]
-    file_names = file_names.split(",")
-    bundle = Bundle(session, path)
-    for arg in sys.argv:
-        if arg.startswith("target="):
-            bundle.target = arg.split("=")[1]
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-s",
+        "--source",
+        help="Path to the directory containing the protein files.",
+        required=True,
+        type=str,
+    )
+    parser.add_argument(
+        "-d",
+        "--dest",
+        help="Path to the directory where the glbs will be saved.",
+        required=True,
+        type=str,
+    )
+    parser.add_argument(
+        "-i",
+        "--images",
+        help="Path to the directory where the images will be saved.",
+        required=False,
+        default=None,
+        type=str,
+    )
+    parser.add_argument(
+        "-m",
+        "--mode",
+        help="Mode to use for coloring the protein.",
+        required=True,
+        type=str,
+    )
+    parser.add_argument(
+        "-fn",
+        "--filenames",
+        help="Names of the files to be processed.",
+        required=False,
+        type=str,
+    )
+    parser.add_argument(
+        "-cl",
+        "--colors",
+        help="Colors to use for coloring the protein.",
+        required=False,
+        nargs="*",
+        type=str,
+    )
+    args = parser.parse_args()
+    path = args.source
+    file_names = args.filenames.split(",")
+    bundle = Bundle(session, args.source, args.dest, args.images)
     cases = {
         "ss": bundle.mode_ss_coloring,
         "rainbow": bundle.mode_rainbow_coloring,
@@ -230,7 +285,7 @@ def main():
         "nucleotide": bundle.mode_nucleotide_coloring,
         "mfpl": bundle.mode_mfpl_coloring,
     }
-    mode, coloring, _ = sys.argv[3].split("_")
+    mode, coloring, _ = args.mode.split("_")
     style = None
     if mode in ["stick", "sphere", "ball"]:
         style = mode
@@ -240,10 +295,7 @@ def main():
         """
         This part will be executed, if the argument is ss_coloring, i.e. coloring the secondary structures.
         """
-        if len(sys.argv) > 6:
-            colors = [sys.argv[4], sys.argv[5], sys.argv[6]]
-        else:
-            colors = None
+        colors = args.colors
         cases[coloring](colors, mode)
         if style is not None:
             bundle.change_style_to(style)
@@ -256,7 +308,9 @@ def main():
         if style is not None:
             # if mode was ["stick", "sphere", "ball"] atoms is the new mode and style is one out of ["stick", "sphere", "ball"]
             bundle.change_style_to(style)
-
+    if args.images is not None:
+        run(session, "lighting soft")
+        run(session, "lighting shadows false")
     bundle.pipeline.extend(["save", "close"])
 
     for structure in list(file_names):
@@ -269,5 +323,6 @@ def main():
 
 # "ChimeraX_sandbox_1" seems to be the default name for a script but did not work
 # if __name__ == "ChimeraX_sandbox_1":
-# TODO find __name__ of script when running with chimerax
+
+
 main()

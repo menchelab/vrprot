@@ -2,6 +2,8 @@ import logging
 import os
 from dataclasses import dataclass
 from enum import Enum, auto
+
+
 class Logger:
     """
     Implementation based on https://dotnettutorials.net/lesson/customized-logging-in-python/
@@ -40,6 +42,7 @@ class FileTypes(Enum):
     rgb_file = auto()
     xyz_low_file = auto()
     xyz_high_file = auto()
+    thumbnail_file = auto()
 
 
 @dataclass
@@ -53,6 +56,7 @@ class ProteinStructure:
     rgb_file: str = ""
     xyz_low_file: str = ""
     xyz_high_file: str = ""
+    thumbnail_file: str = ""
     existing_files: dict = None
     scale: float = 1.0
 

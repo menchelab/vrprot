@@ -113,6 +113,8 @@ def run_chimerax_coloring_script(
     save_location: str,
     processing: str,
     colors: list or None,
+    images_dir: str = "",
+    images: bool = False,
 ) -> None:
     """
     This will use the give ChimeraX installation to process the .pdb files.It will color the secondary structures in the given colors.
@@ -139,14 +141,24 @@ def run_chimerax_coloring_script(
         save_location = "/".join(save_location)
     arg = [
         bundle,  # Path to chimeraX bundle.
+        "-s",
         pdb_dir,  # Path to the directory where the .pdb files are stored.
+        "-d",
+        save_location,  # Path to the directory where the .glb files should be saved.
+        "-fn",
         file_string,  # Filename
+        "-m",
         processing,  # Define mode as secondary structure coloring.,  # Path to the directory where the colored .pdb files should be saved.
     ]
-    script_arg = [colors, f"target={save_location}"]
+    if colors:
+        arg.append("-c")
+        arg.append(" ".join(colors))
+    if images:
+        arg.append("-i")
+        arg.append(os.path.abspath(images_dir))
     try:
         # Call chimeraX to process the desired object.
-        call_ChimeraX_bundle(chimearx, *arg, script_arg=script_arg)
+        call_ChimeraX_bundle(chimearx, arg)
         # Clean tmp files
     except FileNotFoundError:
         # raise an expection if chimeraX could not be found
@@ -156,14 +168,7 @@ def run_chimerax_coloring_script(
         exit()
 
 
-def call_ChimeraX_bundle(
-    chimerax: str,
-    script: str,
-    working_Directory: str,
-    file_names: str,
-    mode: str,
-    script_arg: list = [],
-) -> None:
+def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
     """
     Function to call chimeraX and run chimeraX Python script with the mode applied.
 
@@ -176,16 +181,13 @@ def call_ChimeraX_bundle(
         script_arg (list, strings): all arguments needed by the function used in the chimeraX Python script/bundle (size is dynamic). All Arguments are strings.
     """
     # prepare Arguments for script execution
-    arg = list([script, working_Directory, file_names, mode])
-
-    arg.extend(script_arg)
     if platform.system() == "Linux":
         # for Linux we can use off screen render. This does not work on Windows or macOS
         command = [
             chimerax,
             "--offscreen",
             "--script",
-            ("%s " * len(arg)) % (tuple(arg)),
+            ("%s " * len(args)) % (tuple(args)),
         ]
         # command = (
         #     '%s --offscreen --script "' % chimerax
@@ -193,10 +195,10 @@ def call_ChimeraX_bundle(
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
+        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
-        command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
+        command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
 
     print(command)
     try:

@@ -65,6 +65,7 @@ class AlphafoldDBParser:
     img_size: int = 256
     db: str = classes.Database.AlphaFold.value
     overwrite: bool = False
+    images: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -87,6 +88,7 @@ class AlphafoldDBParser:
         self.GLB_DIR = os.path.join(self.WD, "processing_files", "glbs")
         self.ASCII_DIR = os.path.join(self.WD, "processing_files", "ASCII_clouds")
         self.OUTPUT_DIR = os.path.join(self.WD, "processing_files", "MAPS")
+        self.IMAGES_DIR = os.path.join(self.WD, "thumbnails")
 
     def init_dirs(self, subs=True) -> None:
         """
@@ -99,6 +101,7 @@ class AlphafoldDBParser:
         self.OUTPUT_XYZ_HIGH_DIR = os.path.join(
             self.OUTPUT_DIR, os.path.join("xyz", "high")
         )
+        self.IMAGES_DIR = os.path.join(self.OUTPUT_DIR, "thumbnails")
         directories = [var for var in self.__dict__.keys() if "_DIR" in var]
         if not subs:
             for var in directories:
@@ -117,6 +120,7 @@ class AlphafoldDBParser:
             FT.rgb_file: self.OUTPUT_RGB_DIR,
             FT.xyz_low_file: self.OUTPUT_XYZ_LOW_DIR,
             FT.xyz_high_file: self.OUTPUT_XYZ_HIGH_DIR,
+            FT.thumbnail_file: self.IMAGES_DIR,
         }
         self.init_structures_dict(self.structures.keys())
 
@@ -138,6 +142,7 @@ class AlphafoldDBParser:
             output_xyz = file_name + ".bmp"
             output_xyz_low = os.path.join(self.OUTPUT_XYZ_LOW_DIR, output_xyz)
             output_xyz_high = os.path.join(self.OUTPUT_XYZ_HIGH_DIR, output_xyz)
+            output_thumbnail = os.path.join(self.IMAGES_DIR, file_name + ".png")
             files = (
                 pdb_file,
                 glb_file,
@@ -146,6 +151,7 @@ class AlphafoldDBParser:
                 output_rgb,
                 output_xyz_low,
                 output_xyz_high,
+                output_thumbnail,
             )
             structure = ProteinStructure(protein, file_name, *files)
             self.structures[protein] = structure
@@ -197,7 +203,7 @@ class AlphafoldDBParser:
         if processing is None:
             processing = ColoringModes.cartoons_ss_coloring.value
         if processing.find("ss") != -1:
-            colors = ["red,green,blue"]
+            colors = ["red", "green", "blue"]
 
         to_process = set()
         tmp_strucs = []
@@ -228,6 +234,8 @@ class AlphafoldDBParser:
                 self.GLB_DIR,
                 processing,
                 colors,
+                self.IMAGES_DIR,
+                self.images,
             )
             for structure in tmp_strucs:
                 if not self.keep_temp[FT.pdb_file] and os.path.isfile(
