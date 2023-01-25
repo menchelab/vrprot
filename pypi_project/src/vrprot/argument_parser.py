@@ -105,7 +105,7 @@ def argument_parser(exec_name="main.py"):
         type=str,
         nargs="?",
         choices=[ver.value for ver in AlphaFoldVersion],
-        help="Defines, which version of Alphafold to use.",
+        help="Defines, which version of AlphaFold to use.",
     )
     parser.add_argument(
         "--batch_size",

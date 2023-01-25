@@ -473,53 +473,53 @@ class AlphafoldDBParser:
     def set_dirs(self, args: Namespace) -> None:
         """Uses arguments from the argument parser Namespace and sets the directories to the corresponding values."""
         # Set the directories for the files to be saved
-        if args.pdb is not None:
-            self.PDB_DIR = args.pdb
-        if args.glb is not None:
-            self.GLB_DIR = args.glb
-        if args.ply is not None:
-            self.PLY_DIR = args.ply
-        if args.pcd is not None:
-            self.ASCII_DIR = args.pcd
-        if args.m is not None:
-            self.OUTPUT_DIR = args.m
+        if args.pdb_file is not None:
+            self.PDB_DIR = args.pdb_file
+        if args.glb_file is not None:
+            self.GLB_DIR = args.glb_file
+        if args.ply_file is not None:
+            self.PLY_DIR = args.ply_file
+        if args.cloud is not None:
+            self.ASCII_DIR = args.cloud
+        if args.map is not None:
+            self.OUTPUT_DIR = args.map
         self.init_dirs()
 
     def set_keep_tmp(self, args: Namespace) -> None:
         """Uses arguments from the argument parser Namespace and sets the switch to keep or to remove the corresponding file types after a processing step is completed."""
-        if args.kpdb is not None:
-            self.keep_tmp[FT.pdb_file] = args.kpdb
-        if args.kglb is not None:
-            self.keep_temp[FT.glb_file] = args.kglb
-        if args.kply is not None:
-            self.keep_temp[FT.ply_file] = args.kply
-        if args.asc is not None:
-            self.keep_temp[FT.ascii_file] = args.asc
+        if args.keep_pdb is not None:
+            self.keep_tmp[FT.pdb_file] = args.keep_pdb
+        if args.kee_glb is not None:
+            self.keep_temp[FT.glb_file] = args.kee_glb
+        if args.kee_ply is not None:
+            self.keep_temp[FT.ply_file] = args.kee_ply
+        if args.keep_ascii is not None:
+            self.keep_temp[FT.ascii_file] = args.keep_ascii
 
     def set_batch_size(self, args: Namespace) -> None:
         """Parsers arguments from the argument parser Namespace and sets the batch size to the corresponding value."""
-        if args.bs is not None:
-            self.batch_size = args.bs
+        if args.batch_size is not None:
+            self.batch_size = args.batch_size
 
     def set_alphafold_version(self, args: Namespace) -> None:
         """Parsers arguments from the argument parser Namespace and sets the alphafold version to the corresponding value."""
-        if args.av is not None:
+        if args.alphafold_version is not None:
             for value in AlphaFoldVersion.__members__.keys():
-                if value == args.av:
+                if value == args.alphafold_version:
                     self.alphafold_ver = value
                     break
 
     def set_coloring_mode(self, args: Namespace) -> None:
-        if args.cm is not None:
-            self.processing = args.cm
+        if args.color_mode is not None:
+            self.processing = args.color_mode
 
     def set_img_size(self, args: Namespace) -> None:
-        if args.imgs is not None:
-            self.img_size = args.imgs
+        if args.img_size is not None:
+            self.img_size = args.img_size
 
     def set_database(self, args: Namespace) -> None:
-        if args.db is not None:
-            self.db = args.db
+        if args.database is not None:
+            self.db = args.database
 
     def execute_fetch(self, proteins: str) -> None:
         """Uses a list of proteins to fetch the PDB files from the alphafold db. This PDB files will then be used to generated the color maps."""
@@ -566,5 +566,5 @@ class AlphafoldDBParser:
         util.remove_dirs(processing_files)
 
     def set_chimerax(self, args: Namespace):
-        if args.ch is not None:
-            self.chimerax = args.ch
+        if args.chimerax is not None:
+            self.chimerax = args.chimerax

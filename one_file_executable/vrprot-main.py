@@ -1,13 +1,17 @@
 #! python3
+import os
 import sys
 
-sys.path.append("/Users/till/Documents/Playground/alphafold_to_vrnetzer/pypi_project/src")
+sys.path = [
+    os.path.join(os.path.dirname(__file__), "..", "pypi_project", "src")
+] + sys.path
 import vrprot.util
 from vrprot.alphafold_db_parser import AlphafoldDBParser
 from vrprot.argument_parser import argument_parser
 from vrprot.util import Logger
 
 log = Logger("main")
+
 
 def main():
     """Main function will take the arguments passed by the user and execute the program accordingly."""
