@@ -140,6 +140,8 @@ def run_chimerax_coloring_script(
         pdb_dir = "/".join(pdb_dir)
         save_location = save_location.split("\\")
         save_location = "/".join(save_location)
+        images_dir = os.path.abspath(images_dir).split("\\")
+        images_dir = "/".join(images_dir)
     arg = [
         bundle,  # Path to chimeraX bundle.
         "-s",
@@ -156,7 +158,7 @@ def run_chimerax_coloring_script(
         arg.append(" ".join(colors))
     if images:
         arg.append("-i")
-        arg.append(os.path.abspath(images_dir))
+        arg.append(images_dir)
     try:
         # Call chimeraX to process the desired object.
         call_ChimeraX_bundle(chimearx, arg)
@@ -281,9 +283,9 @@ def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
         new (int): How much space is needed for the new files.
     """
     if space is None:
-        return
+        return None
     if space <= 0:
-        return
+        return None
     tmp = {}
     for ft, _dir in DIRS.items():
         if ft == "output":
@@ -303,9 +305,8 @@ def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
 
 def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
     """Removes all cached files."""
-    if space is None:
+    if space is None or tmp is None:
         return
     for ft, files in tmp.items():
-        while space - len(files) <= new:
-            file = files.pop()
+        for file in files:
             os.remove(file)
