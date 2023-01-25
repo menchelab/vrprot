@@ -67,6 +67,7 @@ class AlphafoldDBParser:
     overwrite: bool = False
     images: bool = False
     num_cached: int = None
+    force_refetch: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -174,7 +175,7 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             self.log.debug(f"Checking if {protein} is already processed.")
-            if not structure.existing_files[FT.pdb_file] or self.overwrite:
+            if not structure.existing_files[FT.pdb_file] or self.force_refetch:
                 self.log.debug(f"Fetching {protein} from {self.db}.")
                 if self.db == classes.Database.AlphaFold.value:
                     if util.fetch_pdb_from_alphafold(

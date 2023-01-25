@@ -133,14 +133,16 @@ def run_chimerax_coloring_script(
         _, file = ntpath.split(file)
         file_string += f"{file},"
     file_string = file_string[:-1]
+    images_dir = os.path.abspath(images_dir)
     os.makedirs(save_location, exist_ok=True)
+    os.makedirs(images_dir, exist_ok=True)
     if platform.system() == "Windows":
         bundle = bundle
         pdb_dir = pdb_dir.split("\\")
         pdb_dir = "/".join(pdb_dir)
         save_location = save_location.split("\\")
         save_location = "/".join(save_location)
-        images_dir = os.path.abspath(images_dir).split("\\")
+        images_dir = images_dir.split("\\")
         images_dir = "/".join(images_dir)
     arg = [
         bundle,  # Path to chimeraX bundle.
