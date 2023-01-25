@@ -4,14 +4,14 @@ import os
 import platform
 import shutil
 import subprocess as sp
-import time
+import sys
 
 import requests
 import trimesh
 from trimesh.exchange import ply
 from trimesh.exchange.export import export_mesh
 
-from .classes import AlphaFoldVersion, FileTypes, Logger
+from .classes import AlphaFoldVersion, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
@@ -19,6 +19,7 @@ wd = os.path.dirname(".")  # for final executable
 WD = os.path.abspath(wd)  # for development
 FILE_DIR = os.path.dirname(__file__)
 SCRIPTS = os.path.join(FILE_DIR, "scripts")
+
 log = Logger("util")
 
 
@@ -98,12 +99,13 @@ def search_for_chimerax() -> str:
             drive = drive.replace("\\", "/")
             p = f"{drive}*/ChimeraX*/bin/ChimeraX*-console.exe"
             chimerax = glob.glob(p, recursive=True)
-            log.debug(chimerax)
             if len(chimerax) > 0:
                 chimerax = f'"{chimerax[0]}"'.replace("/", "\\")
                 break
         if len(chimerax) == 0:
             raise ChimeraXException("ChimeraX not found. Is it installed?")
+    if not (os.path.isfile(chimerax) and os.access(chimerax, os.X_OK)):
+        raise ChimeraXException("ChimeraX not found. Is it installed?")
     return chimerax
 
 
@@ -114,8 +116,6 @@ def run_chimerax_coloring_script(
     save_location: str,
     processing: str,
     colors: list or None,
-    images_dir: str = "",
-    images: bool = False,
 ) -> None:
     """
     This will use the give ChimeraX installation to process the .pdb files.It will color the secondary structures in the given colors.
@@ -140,28 +140,16 @@ def run_chimerax_coloring_script(
         pdb_dir = "/".join(pdb_dir)
         save_location = save_location.split("\\")
         save_location = "/".join(save_location)
-        images_dir = os.path.abspath(images_dir).split("\\")
-        images_dir = "/".join(images_dir)
     arg = [
         bundle,  # Path to chimeraX bundle.
-        "-s",
         pdb_dir,  # Path to the directory where the .pdb files are stored.
-        "-d",
-        save_location,  # Path to the directory where the .glb files should be saved.
-        "-fn",
         file_string,  # Filename
-        "-m",
         processing,  # Define mode as secondary structure coloring.,  # Path to the directory where the colored .pdb files should be saved.
     ]
-    if colors:
-        arg.append("-c")
-        arg.append(" ".join(colors))
-    if images:
-        arg.append("-i")
-        arg.append(images_dir)
+    script_arg = [colors, f"target={save_location}"]
     try:
         # Call chimeraX to process the desired object.
-        call_ChimeraX_bundle(chimearx, arg)
+        call_ChimeraX_bundle(chimearx, *arg, script_arg=script_arg)
         # Clean tmp files
     except FileNotFoundError:
         # raise an expection if chimeraX could not be found
@@ -171,7 +159,14 @@ def run_chimerax_coloring_script(
         exit()
 
 
-def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
+def call_ChimeraX_bundle(
+    chimerax: str,
+    script: str,
+    working_Directory: str,
+    file_names: str,
+    mode: str,
+    script_arg: list = [],
+) -> None:
     """
     Function to call chimeraX and run chimeraX Python script with the mode applied.
 
@@ -184,25 +179,26 @@ def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
         script_arg (list, strings): all arguments needed by the function used in the chimeraX Python script/bundle (size is dynamic). All Arguments are strings.
     """
     # prepare Arguments for script execution
+    arg = list([script, working_Directory, file_names, mode])
+
+    arg.extend(script_arg)
     if platform.system() == "Linux":
         # for Linux we can use off screen render. This does not work on Windows or macOS
         command = [
             chimerax,
             "--offscreen",
             "--script",
-            ("%s " * len(args)) % (tuple(args)),
+            ("%s " * len(arg)) % (tuple(arg)),
         ]
         # command = (
         #     '%s --offscreen --script "' % chimerax
         #     + ("%s " * len(arg)) % (tuple(arg))
         #     + '"'
         # )
-    elif platform.system() == "Windows":
-        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
-        command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
-
+        command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
+        # command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
     print(command)
     try:
         process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
@@ -235,7 +231,6 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     # file = ply.export_ply(mesh)
     # with open(ply_file, "wb+") as f:
     #     f.write(file)
-    log.debug("NOW PLY")
     if debug:
         mesh = trimesh.load(ply_file, force="mesh")
         mesh.show()
@@ -258,7 +253,7 @@ def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> Non
 
 
 def remove_dirs(directory):
-    """Removes a directory an all underlying subdirectories. WARNING this can lead to loss of data!"""
+    """Removes a directory an all underlying subdirectories. WARNING this can lead to los of data!"""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
 
@@ -272,41 +267,3 @@ def combine_fractions(directory: str, target: str, chimerax: str):
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
     print("All multi fraction structures handled.")
-
-
-def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
-    """Removes as many old files until there is enough space for the new files.
-
-    Args:
-        DIRS (dict): Maps File Types to directories
-        space (int): How mach space is maximal available.
-        new (int): How much space is needed for the new files.
-    """
-    if space is None:
-        return None
-    if space <= 0:
-        return None
-    tmp = {}
-    for ft, _dir in DIRS.items():
-        if ft == "output":
-            continue
-        if os.path.isdir(_dir):
-            files = [os.path.join(_dir, f) for f in os.listdir(_dir)]
-            if space - len(files) < new:
-                files = {f: time.ctime(os.path.getmtime(f)) for f in files}
-                files = sorted(files.items(), key=lambda x: x[1], reverse=True)
-                while space - len(files) < new:
-                    file = files.pop()
-                    if ft not in tmp:
-                        tmp[ft] = []
-                    tmp[ft].append(file[0])
-    return tmp
-
-
-def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
-    """Removes all cached files."""
-    if space is None or tmp is None:
-        return
-    for ft, files in tmp.items():
-        for file in files:
-            os.remove(file)

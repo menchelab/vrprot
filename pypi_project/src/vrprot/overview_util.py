@@ -3,7 +3,8 @@ import os
 import pandas as pd
 
 from .util import WD
-from .classes import  ColoringModes, ProteinStructure
+
+from .classes import ColoringModes, ProteinStructure
 
 STATIC_PATH = os.path.join(WD, "static")
 CSV_PATH = os.path.join(STATIC_PATH, "csv")
@@ -40,10 +41,7 @@ def get_scale(uniprot_ids=[], mode=ColoringModes.cartoons_ss_coloring):
     res = {}
     for id in uniprot_ids:
         if id in overview.index:
-            try:
-                res[id] = overview.loc[id, mode]
-            except KeyError:
-                return -1
+            res[id] = overview.loc[id, mode]
     return res
 
 

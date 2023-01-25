@@ -6,7 +6,7 @@ import os
 
 from PIL import Image
 
-from .classes import Logger
+from .util import Logger
 
 log = Logger("PointCloud2Map")
 

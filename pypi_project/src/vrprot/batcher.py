@@ -1,4 +1,4 @@
-from .classes import Logger
+from .util import Logger
 
 log = Logger("batcher")
 

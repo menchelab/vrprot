@@ -3,13 +3,13 @@ requires = ["hatchling","hatch-requirements-txt"]
 build-backend = "hatchling.build"
 [project]
 name = "vrprot"
-version = "0.1.1"
+version = "0.0.7"
 authors = [
-  { name="Till O.", email="till@menchelab.com" },
-  { name="Felix F." },
+  { name="Till Oblau", email="till@menchelab.com" },
+  { name="Felix Fischer", email="a51832854@unet.univie.ac.at" },
 ]
 maintainers = [
-  { name="Till O.", email="till@menchelab.com" },
+  { name="Till Oblau", email="till@menchelab.com" },
 ]
 description = "This package is used to generate your own protein structure images to represent 3D protein structures on the VRNetzer platform."
 readme = "README.md"
@@ -23,8 +23,8 @@ dynamic=["dependencies"]
 
 [project.urls]
 "Homepage" = "https://menchelab.com/"
-"Bug Tracker" = "https://github.com/menchelab/vrprot/issues"
-"Git" = "https://github.com/menchelab/vrprot"
+"Bug Tracker" = "https://github.com/menchelab/alphafold_to_vrnetzer/issues"
+"Git" = "https://github.com/menchelab/alphafold_to_vrnetzer"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["requirements.txt"]
