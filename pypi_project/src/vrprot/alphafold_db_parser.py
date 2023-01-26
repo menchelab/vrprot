@@ -212,6 +212,7 @@ class AlphafoldDBParser:
         As default, the source pdb file is NOT removed.
         To change this set self.keep_temp[FT.pdb_file] = False.
         """
+        colors = None
         self.chimerax = util.search_for_chimerax()
         if processing is None:
             processing = ColoringModes.cartoons_ss_coloring.value
@@ -300,12 +301,18 @@ class AlphafoldDBParser:
                     structure.ascii_file,
                     self.img_size * self.img_size,
                 )
-                structure.existing_files[FT.ascii_file] = True
-                structure.scale = scale
-                self.write_scale(protein)
-                self.log.debug(
-                    f"Sampled pcd to {structure.ascii_file} and wrote scale of {scale} to file {self.overview_file}"
-                )
+                if os.path.isfile(structure.ascii_file):
+                    structure.existing_files[FT.ascii_file] = True
+                    structure.scale = scale
+                    self.write_scale(protein)
+                    self.log.debug(
+                        f"Sampled pcd to {structure.ascii_file} and wrote scale of {scale} to file {self.overview_file}"
+                    )
+                else:
+                    self.log.error(
+                        f"Sampling of {structure.ply_file} failed. No file {structure.ascii_file} was created."
+                    )
+                    self.not_fetched.add(protein)
                 if not self.keep_temp[FT.ply_file]:
                     os.remove(structure.ply_file)
 

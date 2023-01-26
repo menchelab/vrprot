@@ -94,7 +94,7 @@ class ColoringModes(Enum):
     surface_hydrophobic_coloring = "surface_hydrophobic_coloring"
     surface_bFactor_coloring = "surface_bFactor_coloring"
     surface_nucleotide_coloring = "surface_nucleotide_coloring"
-    surface_mfpl_coloring = "surface_mfpl_coloring"
+    # surface_mfpl_coloring = "surface_mfpl_coloring"
     stick_ss_coloring = "stick_ss_coloring"
     stick_rainbow_coloring = "stick_rainbow_coloring"
     stick_heteroatom_coloring = "stick_heteroatom_coloring"

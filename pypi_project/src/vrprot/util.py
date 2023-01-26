@@ -237,7 +237,6 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     # file = ply.export_ply(mesh)
     # with open(ply_file, "wb+") as f:
     #     f.write(file)
-    log.debug("NOW PLY")
     if debug:
         mesh = trimesh.load(ply_file, force="mesh")
         mesh.show()
