@@ -68,6 +68,7 @@ class AlphafoldDBParser:
     images: bool = False
     num_cached: int = None
     force_refetch: bool = False
+    colors: list[str] = field(default_factory=lambda: ["red", "green", "blue"])
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -170,7 +171,13 @@ class AlphafoldDBParser:
                 f"All structures of this batch: {proteins} are already processed. Skipping this batch."
             )
             return
-        tmp = util.free_space(self.DIRS, len(proteins), self.num_cached)
+        tmp = util.free_space(
+            self.DIRS,
+            len(proteins),
+            self.num_cached,
+            proteins=proteins,
+            version=self.alphafold_ver,
+        )
         self.not_fetched = set()
         for protein in proteins:
             structure = self.structures[protein]
@@ -206,11 +213,10 @@ class AlphafoldDBParser:
         To change this set self.keep_temp[FT.pdb_file] = False.
         """
         self.chimerax = util.search_for_chimerax()
-        colors = None
         if processing is None:
             processing = ColoringModes.cartoons_ss_coloring.value
         if processing.find("ss") != -1:
-            colors = ["red", "green", "blue"]
+            colors = self.colors
 
         to_process = set()
         tmp_strucs = []

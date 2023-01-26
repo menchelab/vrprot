@@ -276,7 +276,13 @@ def combine_fractions(directory: str, target: str, chimerax: str):
     print("All multi fraction structures handled.")
 
 
-def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
+def free_space(
+    DIRS: dict[FileTypes, str],
+    new: int,
+    space: int = None,
+    proteins: list = None,
+    version: str = None,
+):
     """Removes as many old files until there is enough space for the new files.
 
     Args:
@@ -301,7 +307,13 @@ def free_space(DIRS: dict[FileTypes, str], new: int, space: int = None):
                     file = files.pop()
                     if ft not in tmp:
                         tmp[ft] = []
-                    tmp[ft].append(file[0])
+                    remove = True
+                    for protein in proteins:
+                        if protein in file[0] and version in file[0]:
+                            remove = False
+                            break
+                    if remove:
+                        tmp[ft].append(file[0])
     return tmp
 
 
