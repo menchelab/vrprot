@@ -27,6 +27,7 @@ class Bundle:
         self.images = images
         self.pipeline = ["N/A"]
         run(self.session, f"cd {path}")
+        self.path = path
 
     ## Utility
     def open_file(self, structure):
@@ -221,7 +222,52 @@ class Bundle:
         self.pipeline = (
             self.pipeline[:-2] + [unselect, view, save, select] + self.pipeline[-2:]
         )
+    def apply_processing(self,mode,colors):
+        cases = {
+        "ss": self.mode_ss_coloring,
+        "rainbow": self.mode_rainbow_coloring,
+        "heteroatom": self.mode_heteroatom_coloring,
+        "polymer": self.mode_polymer_coloring,
+        "chain": self.mode_chain_coloring,
+        "electrostatic": self.electrostatic_coloring,
+        "hydrophobic": self.hydrophobic_coloring,
+        "bFactor": self.mode_bFactor_coloring,
+        "nucleotide": self.mode_nucleotide_coloring,
+        "mfpl": self.mode_mfpl_coloring,
+    } 
+        mode, coloring, _ = mode.split("_")
+        style = None
+        if mode in ["stick", "sphere", "ball"]:
+            style = mode
+            mode = "atoms"
 
+        if coloring == "ss":
+            """
+            This part will be executed, if the argument is ss_coloring, i.e. coloring the secondary structures.
+            """
+            cases[coloring](colors, mode)
+            if style is not None:
+                self.change_style_to(style)
+        elif coloring in ["electrostatic", "hydrophobic"]:
+            cases[coloring]()
+
+        else:
+            # General coloring cases
+            cases[coloring](mode)
+            if style is not None:
+                # if mode was ["stick", "sphere", "ball"] atoms is the new mode and style is one out of ["stick", "sphere", "ball"]
+                self.change_style_to(style)
+        if self.images is not None:
+            run(self.session, "lighting soft")
+            run(self.session, "lighting shadows false")
+        self.pipeline.extend(["save", "close"])
+
+    def run(self,file_names):
+        for structure in list(file_names):
+            run(self.session, f"echo {structure}")
+            self.open_file(os.path.join(self.path, structure))
+            self.run_pipeline(structure)
+        # Close ChimeraX
 
 def main():
     parser = argparse.ArgumentParser()
@@ -270,59 +316,15 @@ def main():
         type=str,
     )
     args = parser.parse_args()
-    path = args.source
     file_names = args.filenames.split(",")
     bundle = Bundle(session, args.source, args.dest, args.images)
-    cases = {
-        "ss": bundle.mode_ss_coloring,
-        "rainbow": bundle.mode_rainbow_coloring,
-        "heteroatom": bundle.mode_heteroatom_coloring,
-        "polymer": bundle.mode_polymer_coloring,
-        "chain": bundle.mode_chain_coloring,
-        "electrostatic": bundle.electrostatic_coloring,
-        "hydrophobic": bundle.hydrophobic_coloring,
-        "bFactor": bundle.mode_bFactor_coloring,
-        "nucleotide": bundle.mode_nucleotide_coloring,
-        "mfpl": bundle.mode_mfpl_coloring,
-    }
-    mode, coloring, _ = args.mode.split("_")
-    style = None
-    if mode in ["stick", "sphere", "ball"]:
-        style = mode
-        mode = "atoms"
+    bundle.apply_processing(args.mode, args.colors)
+    bundle.run(file_names)
+    run(session, "exit")
 
-    if coloring == "ss":
-        """
-        This part will be executed, if the argument is ss_coloring, i.e. coloring the secondary structures.
-        """
-        colors = args.colors
-        cases[coloring](colors, mode)
-        if style is not None:
-            bundle.change_style_to(style)
-    elif coloring in ["electrostatic", "hydrophobic"]:
-        cases[coloring]()
-
-    else:
-        # General coloring cases
-        cases[coloring](mode)
-        if style is not None:
-            # if mode was ["stick", "sphere", "ball"] atoms is the new mode and style is one out of ["stick", "sphere", "ball"]
-            bundle.change_style_to(style)
-    if args.images is not None:
-        run(session, "lighting soft")
-        run(session, "lighting shadows false")
-    bundle.pipeline.extend(["save", "close"])
-
-    for structure in list(file_names):
-        run(session, f"echo {structure}")
-        bundle.open_file(os.path.join(path, structure))
-        bundle.run_pipeline(structure)
-    # Close ChimeraX
-    run(bundle.session, "exit")
 
 
 # "ChimeraX_sandbox_1" seems to be the default name for a script but did not work
-# if __name__ == "ChimeraX_sandbox_1":
 
-
-main()
+if __name__ == "ChimeraX_sandbox_1":
+    main()

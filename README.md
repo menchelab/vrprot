@@ -144,7 +144,7 @@ This script will extract all pdb files from the archive and save them in the des
 Use the script as follows:
 
 ```
-  ./extract_alphafold.sh <path_to_archive> <path_to_output_directory>
+  pypi_project/src/vrprot/scripts/extract_alphafold.sh <path_to_archive> <path_to_output_directory>
 ```
 
 Structures larger than 2700 amino acids are seperated in multiple fractions (F1 - Fn).
@@ -154,29 +154,28 @@ The script can be run either directly from the command line interface:
 Linux:
 
 ```
-  chimerax --offscreen --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+  chimerax --offscreen --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>" -sp (optional) -mode <color_mode>'
 ```
 
 Mac:
 
 ```
-  /Applications/ChimeraX-<version>.app/Contents/MacOS/chimerax --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+  /Applications/ChimeraX-<version>.app/Contents/MacOS/chimerax --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>" -sp (optional) -mode <color_mode>'
 ```
 
 Windows:
 
 ```
   #TODO:Try this
-  "C:\Program Files\ChimeraX-X\bin\chimerax.exe" --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+  "C:\Program Files\ChimeraX-X\bin\chimerax.exe" --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>" -sp (optional) -mode <color_mode>'
 ```
 
+Be sure to position the quotation marks correctly!
 Or inside of ChimeraX executing the following command:
 
 ```
   runscript combine_structures.py <path_to_directory> <path_to_output_directory>
 ```
-
-Be aware that these combine structures are glb files and can therefore not be preprocessed with one of the coloring modes.
 
 ## Possible Color Modes
 
