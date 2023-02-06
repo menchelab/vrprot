@@ -5,7 +5,7 @@ import os
 
 import open3d as o3d
 
-from .classes import  Logger
+from .classes import Logger
 from .util import FILE_DIR
 
 CUBE_NO_LINES = os.path.join(FILE_DIR, "static", "3d_objects", "Cube_no_lines.ply")

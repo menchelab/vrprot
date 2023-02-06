@@ -1,4 +1,5 @@
-#Author: Felix Fischer
+# Author: Felix Fischer
+
 
 def pcd_to_png(protein):
     import png

@@ -222,19 +222,20 @@ class Bundle:
         self.pipeline = (
             self.pipeline[:-2] + [unselect, view, save, select] + self.pipeline[-2:]
         )
-    def apply_processing(self,mode,colors):
+
+    def apply_processing(self, mode, colors):
         cases = {
-        "ss": self.mode_ss_coloring,
-        "rainbow": self.mode_rainbow_coloring,
-        "heteroatom": self.mode_heteroatom_coloring,
-        "polymer": self.mode_polymer_coloring,
-        "chain": self.mode_chain_coloring,
-        "electrostatic": self.electrostatic_coloring,
-        "hydrophobic": self.hydrophobic_coloring,
-        "bFactor": self.mode_bFactor_coloring,
-        "nucleotide": self.mode_nucleotide_coloring,
-        "mfpl": self.mode_mfpl_coloring,
-    } 
+            "ss": self.mode_ss_coloring,
+            "rainbow": self.mode_rainbow_coloring,
+            "heteroatom": self.mode_heteroatom_coloring,
+            "polymer": self.mode_polymer_coloring,
+            "chain": self.mode_chain_coloring,
+            "electrostatic": self.electrostatic_coloring,
+            "hydrophobic": self.hydrophobic_coloring,
+            "bFactor": self.mode_bFactor_coloring,
+            "nucleotide": self.mode_nucleotide_coloring,
+            "mfpl": self.mode_mfpl_coloring,
+        }
         mode, coloring, _ = mode.split("_")
         style = None
         if mode in ["stick", "sphere", "ball"]:
@@ -262,12 +263,13 @@ class Bundle:
             run(self.session, "lighting shadows false")
         self.pipeline.extend(["save", "close"])
 
-    def run(self,file_names):
+    def run(self, file_names):
         for structure in list(file_names):
             run(self.session, f"echo {structure}")
             self.open_file(os.path.join(self.path, structure))
             self.run_pipeline(structure)
         # Close ChimeraX
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -321,7 +323,6 @@ def main():
     bundle.apply_processing(args.mode, args.colors)
     bundle.run(file_names)
     run(session, "exit")
-
 
 
 # "ChimeraX_sandbox_1" seems to be the default name for a script but did not work
