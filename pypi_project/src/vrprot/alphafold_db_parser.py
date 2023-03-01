@@ -382,6 +382,7 @@ class AlphafoldDBParser:
         """
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
+        tmp = os.listdir(source)
         files = []
         for file in tmp:
             self.check_dirs(file, source)

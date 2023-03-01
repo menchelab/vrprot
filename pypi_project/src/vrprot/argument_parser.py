@@ -106,6 +106,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[ver.value for ver in AlphaFoldVersion],
         help="Defines, which version of AlphaFold to use.",
+        default=AlphaFoldVersion.v4_0_0.value,
     )
     parser.add_argument(
         "--batch_size",
@@ -114,6 +115,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         metavar="BATCH_SIZE",
         help="Defines the size of the batch which will be processed",
+        default=50,
     )
     parser.add_argument(
         "--keep_pdb",
@@ -122,6 +124,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the PDB files after the GLB file is created. Default is True.",
+        default=True,
     )
     parser.add_argument(
         "--keep_glb",
@@ -130,6 +133,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the GLB files after the PLY file is created. Default is False.",
+        default=False,
     )
     parser.add_argument(
         "--keep_ply",
@@ -138,6 +142,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the PLY files after the ASCII file is created. Default is False.",
+        default=False,
     )
     parser.add_argument(
         "--keep_ascii",
@@ -146,6 +151,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.",
+        deafult=False,
     )
     parser.add_argument(
         "--chimerax",
@@ -161,13 +167,15 @@ def argument_parser(exec_name="main.py"):
         type=str,
         nargs="?",
         help=f"Defines the coloring mode which will be used to color the structure. Choices: {COLORMODE_CHOICES}... . For a full list, see README.",
+        default=ColoringModes.cartoons_ss_coloring.value,
     )
     parser.add_argument(
         "--img_size",
         "-imgs",
         type=int,
         nargs="?",
-        help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
+        help=f"Defines the size of the output images.",
+        default=256,
     )
     parser.add_argument(
         "--database",

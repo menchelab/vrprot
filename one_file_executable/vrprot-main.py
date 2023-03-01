@@ -34,6 +34,8 @@ def main():
         with open(args.file[0]) as f:
             proteins = f.read().splitlines()
         parser.execute_from_object(proteins)
+    # if args.mode == "bulk":
+    #     parser.execute_bulk(args.source[0])
 
 
 if __name__ == "__main__":
