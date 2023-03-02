@@ -200,10 +200,14 @@ def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
+        command = (
+            '%s --nogui --script "' % chimerax
+            + ("%s " * len(args)) % (tuple(args))
+            + '"'
+        )
     else:
         # call chimeraX with commandline in a subprocess
-        command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
+        command = [chimerax, "--nogui", "--script", ("%s " * len(args)) % (tuple(args))]
 
     print(command)
     try:
