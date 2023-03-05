@@ -69,6 +69,8 @@ class AlphafoldDBParser:
     num_cached: int = None
     force_refetch: bool = False
     colors: list[str] = field(default_factory=lambda: ["red", "green", "blue"])
+    gui: bool = False
+    only_images: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -160,9 +162,15 @@ class AlphafoldDBParser:
             self.structures[protein] = structure
         return self.structures
 
-    def fetch_pdb(self, proteins: list[str]) -> None:
+    def fetch_pdb(self, proteins: list[str], on_demand: bool = True) -> None:
         """
         Fetches .pdb File from the AlphaFold Server. This function uses the request module from python standard library to directly download pdb files from the AlphaFold server.
+        Args:
+            proteins (list[str]): List of proteins to fetch.
+            on_demand (bool): If True, the function will check if there is enough space on the disk to store the files. If not, it will delete the oldest files.
+
+        Returns:
+            None
         """
         self.init_structures_dict(proteins)
         proteins = self.filter_already_processed(proteins)
@@ -171,13 +179,14 @@ class AlphafoldDBParser:
                 f"All structures of this batch: {proteins} are already processed. Skipping this batch."
             )
             return
-        tmp = util.free_space(
-            self.DIRS,
-            len(proteins),
-            self.num_cached,
-            proteins=proteins,
-            version=self.alphafold_ver,
-        )
+        if on_demand:
+            tmp = util.free_space(
+                self.DIRS,
+                len(proteins),
+                self.num_cached,
+                proteins=proteins,
+                version=self.alphafold_ver,
+            )
         self.not_fetched = set()
         for protein in proteins:
             structure = self.structures[protein]
@@ -202,9 +211,10 @@ class AlphafoldDBParser:
                 self.log.debug(
                     f"Structure {protein} is already processed and overwrite is not allowed."
                 )
-        util.remove_cached_files(
-            tmp, self.num_cached, len(proteins) - len(self.not_fetched)
-        )
+        if on_demand:
+            util.remove_cached_files(
+                tmp, self.num_cached, len(proteins) - len(self.not_fetched)
+            )
 
     def chimerax_process(self, proteins: list[str], processing: str or None) -> None:
         """
@@ -250,6 +260,8 @@ class AlphafoldDBParser:
                 colors,
                 self.IMAGES_DIR,
                 self.images,
+                self.gui,
+                self.only_images,
             )
             for structure in tmp_strucs:
                 if not self.keep_temp[FT.pdb_file] and os.path.isfile(
@@ -376,13 +388,19 @@ class AlphafoldDBParser:
         """Add all uniprot_ids from the list to the set of proteins."""
         self.set_version_from_filenames()
         # self.init_structures_dict(proteins)
-        batch([self.fetch_pdb, self.pdb_pipeline], proteins, self.batch_size)
+        batch(
+            [self.fetch_pdb, self.pdb_pipeline],
+            proteins,
+            self.batch_size,
+            on_demand=False,
+        )
 
     def proteins_from_dir(self, source: str) -> None:
         """
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
         tmp = os.listdir(source)
+        # util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing)
         files = []
         for file in tmp:
             self.check_dirs(file, source)
@@ -398,9 +416,9 @@ class AlphafoldDBParser:
             file_name = file.split("/")[-1]
             proteins.append(file_name.split("-")[1])
         self.init_structures_dict(proteins)
-        batch([self.pdb_pipeline], proteins, self.batch_size)
+        batch([self.pdb_pipeline], proteins, self.batch_size, on_demand=False)
 
-    def pdb_pipeline(self, proteins: list[str]) -> None:
+    def pdb_pipeline(self, proteins: list[str], **kwargs) -> None:
         """Default pipeline which is used in all program modes.
         For each structure, the PDB file we be processed in chimerax and exported as GLB file. This GLB file will be converted into a PLY file.
         The PLY file is used to sample the point cloud which will be saved as an ASCII point cloud. This ASCII point cloud will then be used to generate the color maps (rgb,xyz_low and xyz_high)."""
@@ -416,6 +434,8 @@ class AlphafoldDBParser:
         except Exception as e:
             traceback.print_exc()
             raise exceptions.ChimeraXException
+        if self.only_images:
+            return
         self.log.debug("Converting GLBs to PLYs...")
         self.convert_glbs(proteins)
         self.log.debug("Sampling PointClouds...")
@@ -423,7 +443,7 @@ class AlphafoldDBParser:
         self.log.debug("Generating Color Maps...")
         self.gen_maps(proteins)
 
-    def fetch_pipeline(self, proteins: list[str]) -> None:
+    def fetch_pipeline(self, proteins: list[str], **kwargs) -> None:
         """
         Fetch of the structure from the alphafold db.
         """
@@ -433,8 +453,7 @@ class AlphafoldDBParser:
         if len(proteins) == 0:
             self.log.info("All structures are already processed. Skipping this batch.")
             return
-
-        batch([self.fetch_pdb, self.pdb_pipeline], proteins, self.batch_size)
+        batch([self.fetch_pdb, self.pdb_pipeline], proteins, self.batch_size, **kwargs)
         self.log.info(f"Missing Structures:{self.not_fetched}")
 
     def filter_already_processed(self, proteins: list[str]) -> list[str]:
@@ -569,8 +588,9 @@ class AlphafoldDBParser:
                     with open(out_file, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
                 os.remove(in_file)
-        self.chimerax = util.search_for_chimerax()
-        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.chimerax)
+        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing)
+        exit()
+        self.proteins_from_dir(self.PDB_DIR)
 
     def clear_default_dirs(self) -> None:
         """Clears the default directories."""
@@ -583,3 +603,15 @@ class AlphafoldDBParser:
     def set_chimerax(self, args: Namespace):
         if args.chimerax is not None:
             self.chimerax = args.chimerax
+
+    def set_thumbnails(self, args: Namespace):
+        if args.thumbnails is not None:
+            self.images = args.thumbnails
+
+    def set_gui(self, args: Namespace):
+        if args.with_gui is not None:
+            self.gui = args.with_gui
+
+    def set_only_images(self, args: Namespace):
+        if args.only_images is not None:
+            self.only_images = args.only_images

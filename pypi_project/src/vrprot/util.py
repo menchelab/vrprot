@@ -116,6 +116,8 @@ def run_chimerax_coloring_script(
     colors: list or None,
     images_dir: str = "",
     images: bool = False,
+    gui: bool = False,
+    only_images: bool = False,
 ) -> None:
     """
     This will use the give ChimeraX installation to process the .pdb files.It will color the secondary structures in the given colors.
@@ -158,12 +160,18 @@ def run_chimerax_coloring_script(
     if colors:
         arg.append("-c")
         arg.append(" ".join(colors))
+
+    if only_images:
+        arg.append("-oi")
+        images = True
+
     if images:
         arg.append("-i")
         arg.append(images_dir)
+        gui = True
     try:
         # Call chimeraX to process the desired object.
-        call_ChimeraX_bundle(chimearx, arg)
+        call_ChimeraX_bundle(chimearx, arg, gui)
         # Clean tmp files
     except FileNotFoundError:
         # raise an expection if chimeraX could not be found
@@ -173,7 +181,7 @@ def run_chimerax_coloring_script(
         exit()
 
 
-def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
+def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
     """
     Function to call chimeraX and run chimeraX Python script with the mode applied.
 
@@ -190,26 +198,25 @@ def call_ChimeraX_bundle(chimerax: str, args: list) -> None:
         # for Linux we can use off screen render. This does not work on Windows or macOS
         command = [
             chimerax,
-            "--offscreen",
             "--script",
             ("%s " * len(args)) % (tuple(args)),
         ]
+        if not gui:
+            command.append("--offscreen")
         # command = (
         #     '%s --offscreen --script "' % chimerax
         #     + ("%s " * len(arg)) % (tuple(arg))
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        command = (
-            '%s --nogui --script "' % chimerax
-            + ("%s " * len(args)) % (tuple(args))
-            + '"'
-        )
+        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
+        if not gui:
+            command += " --nogui"
     else:
         # call chimeraX with commandline in a subprocess
-        command = [chimerax, "--nogui", "--script", ("%s " * len(args)) % (tuple(args))]
-
-    print(command)
+        command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
+        if not gui:
+            command.append("--nogui")
     try:
         process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
         # wait until chimeraX is finished with processing
@@ -247,7 +254,9 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     return True
 
 
-def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> None:
+def batch(
+    funcs: list[object], proteins: list[str], batch_size: int = 50, **kwargs
+) -> None:
     """Will run the functions listed in funcs in a batched process."""
     start = 0
     end = batch_size
@@ -256,7 +265,7 @@ def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> Non
         log.debug(f"Starting Batch form: {start} to {end}")
         batch_proteins = que[:batch_size]
         for func in funcs:
-            func(batch_proteins)
+            func(batch_proteins, **kwargs)
         start = end
         end += batch_size
         del que[:batch_size]
@@ -268,12 +277,18 @@ def remove_dirs(directory):
         shutil.rmtree(directory)
 
 
-def combine_fractions(directory: str, target: str, chimerax: str):
+def combine_fractions(
+    directory: str, target: str, coloring_mode: str, chimerax: str = None
+):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
         chimerax = search_for_chimerax()
     script = os.path.join(SCRIPTS, "combine_structures.py")
-    command = [chimerax, "--script", f"{script} {directory} {target} True"]
+    command = [
+        chimerax,
+        "--script",
+        f"{script} {directory} {target} -sp -mode {coloring_mode}",
+    ]
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
     print("All multi fraction structures handled.")

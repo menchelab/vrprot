@@ -3,13 +3,15 @@ import os
 from dataclasses import dataclass
 from enum import Enum, auto
 
+LOG_LEVEL = logging.DEBUG
+
 
 class Logger:
     """
     Implementation based on https://dotnettutorials.net/lesson/customized-logging-in-python/
     """
 
-    def __init__(self, name, level=logging.DEBUG):
+    def __init__(self, name, level=LOG_LEVEL):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
         consoleHandler = logging.StreamHandler()

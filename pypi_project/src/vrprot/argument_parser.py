@@ -54,6 +54,7 @@ def argument_parser(exec_name="main.py"):
         nargs=1,
         action="store",
     )
+
     # Argument parser for clearing the processing_files directory
     clear = subparsers.add_parser(
         "clear",
@@ -106,7 +107,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[ver.value for ver in AlphaFoldVersion],
         help="Defines, which version of AlphaFold to use.",
-        default=AlphaFoldVersion.v4_0_0.value,
+        default=AlphaFoldVersion.v4.value,
     )
     parser.add_argument(
         "--batch_size",
@@ -151,7 +152,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.",
-        deafult=False,
+        default=False,
     )
     parser.add_argument(
         "--chimerax",
@@ -185,7 +186,27 @@ def argument_parser(exec_name="main.py"):
         choices=[db.value for db in Database],
         help=f"Defines the database from which the proteins will be fetched.",
     )
-
+    parser.add_argument(
+        "--thumbnails",
+        "-thumb",
+        action="store_true",
+        help="Defines whether to create thumbnails of the structures.",
+        default=False,
+    )
+    parser.add_argument(
+        "--with_gui",
+        "-gui",
+        action="store_true",
+        help="Turn on the gui mode of the ChimeraX processing.",
+        default=False,
+    )
+    parser.add_argument(
+        "--only_images",
+        "-oi",
+        action="store_true",
+        help="Only take images of the processed structures.",
+        default=False,
+    )
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()

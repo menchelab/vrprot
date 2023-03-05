@@ -11,7 +11,7 @@ class Bundle:
     Object to be run as python script during chimeraX runtime.
     """
 
-    def __init__(self, session, path, target, images=None):
+    def __init__(self, session, path, target, images=None, only_images=False):
         """
         Initialization of the Bundle Class. Will define the chimeraX session
         which is needed by the ChimeraX api and will define the colors for the
@@ -26,8 +26,14 @@ class Bundle:
         self.target = target
         self.images = images
         self.pipeline = ["N/A"]
-        run(self.session, f"cd {path}")
         self.path = path
+        self.only_images = only_images
+
+    def debug(self, string):
+        run(self.session, f"echo {string}")
+
+    def run_command(self, command):
+        run(self.session, command)
 
     ## Utility
     def open_file(self, structure):
@@ -40,10 +46,13 @@ class Bundle:
         """
         file_name = structure[:-3]
         save_loc = f"{self.target}/{file_name}glb"
+        pipeline = self.pipeline.copy()
         if self.images:
             self.take_screenshot(file_name)
-        self.pipeline[-2] = f"save {save_loc}"
-        for command in self.pipeline:
+            pipeline = pipeline[:-2] + self.take_screenshot(file_name) + pipeline[-2:]
+        if not self.only_images:
+            pipeline[-2] = f"save {save_loc}"
+        for command in pipeline:
             run(self.session, f"echo {command}")
             run(self.session, command)
 
@@ -215,13 +224,14 @@ class Bundle:
         """
         Takes a screenshot of the current scene and saves it to the specified path.
         """
+        if os.path.isfile(f"{self.images}/{structure}png"):
+            return []
         unselect = "~select"
         view = "view"
+
         save = f"save {self.images}/{structure}png width 512 height 512 supersample 3 transparentBackground true"
         select = f"select"
-        self.pipeline = (
-            self.pipeline[:-2] + [unselect, view, save, select] + self.pipeline[-2:]
-        )
+        return [unselect, view, save, select]
 
     def apply_processing(self, mode, colors):
         cases = {
@@ -258,10 +268,16 @@ class Bundle:
             if style is not None:
                 # if mode was ["stick", "sphere", "ball"] atoms is the new mode and style is one out of ["stick", "sphere", "ball"]
                 self.change_style_to(style)
+
         if self.images is not None:
             run(self.session, "lighting soft")
             run(self.session, "lighting shadows false")
-        self.pipeline.extend(["save", "close"])
+
+        if self.only_images:
+            self.pipeline += ["echo NA", "close"]
+            return
+        else:
+            self.pipeline += ["save", "close"]
 
     def run(self, file_names):
         for structure in list(file_names):
@@ -317,9 +333,17 @@ def main():
         nargs="*",
         type=str,
     )
+    parser.add_argument(
+        "--only_images",
+        "-oi",
+        help="Only take images of the protein.",
+        required=False,
+        default=False,
+        action="store_true",
+    )
     args = parser.parse_args()
     file_names = args.filenames.split(",")
-    bundle = Bundle(session, args.source, args.dest, args.images)
+    bundle = Bundle(session, args.source, args.dest, args.images, args.only_images)
     bundle.apply_processing(args.mode, args.colors)
     bundle.run(file_names)
     run(session, "exit")

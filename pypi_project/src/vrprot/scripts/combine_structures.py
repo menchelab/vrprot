@@ -38,7 +38,7 @@ def main(
     while len(all_files) > 1:
         first_structure = os.path.basename(all_files[0])
         ver = first_structure.split("_")[1].replace(".pdb", "")
-        run(session, f"echo {ver}")
+        # run(session, f"echo {ver}")
         first_structure = first_structure.split("-")[1]
         structures = []
         for file in all_files:

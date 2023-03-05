@@ -25,6 +25,9 @@ def main():
     parser.set_alphafold_version(args)
     parser.set_coloring_mode(args)
     parser.set_chimerax(args)
+    parser.set_thumbnails(args)
+    parser.set_gui(args)
+    parser.set_only_images(args)
     log.info(f"AlphaFold Version DB: {parser.alphafold_ver}")
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
@@ -34,8 +37,8 @@ def main():
         with open(args.file[0]) as f:
             proteins = f.read().splitlines()
         parser.execute_from_object(proteins)
-    # if args.mode == "bulk":
-    #     parser.execute_bulk(args.source[0])
+    if args.mode == "bulk":
+        parser.execute_from_bulk(args.source[0])
 
 
 if __name__ == "__main__":
