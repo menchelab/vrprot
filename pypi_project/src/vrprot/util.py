@@ -284,11 +284,19 @@ def combine_fractions(
     if chimerax is None:
         chimerax = search_for_chimerax()
     script = os.path.join(SCRIPTS, "combine_structures.py")
-    command = [
-        chimerax,
-        "--script",
-        f"{script} {directory} {target} -sp -mode {coloring_mode}",
-    ]
+    if platform.system() == "Windows":
+        directory = directory.split("\\")
+        directory = "/".join(directory)
+        target = target.split("\\")
+        target = "/".join(target)
+        args = [script,directory,target,"-sp","-mode",coloring_mode]
+        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
+    else:
+        command = [
+            chimerax,
+            "--script",
+            f"{script} {directory} {target} -sp -mode {coloring_mode}",
+        ]
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
     print("All multi fraction structures handled.")
