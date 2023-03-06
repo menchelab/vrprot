@@ -67,7 +67,7 @@ def main(
         run(session, "exit")
 
 
-# TODO: Remove in release
+
 if __name__ == "ChimeraX_sandbox_1":
     parser = argparse.ArgumentParser()
     parser.add_argument(

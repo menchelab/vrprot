@@ -36,7 +36,7 @@ class AlphafoldDBParser:
         not_fetched set[str]: Set of protein structures which could no be fetched. Deafults to [].
         keep_temp dict[FT, bool]: Configuration to keep or remove processing files like PDB or GLB files after each processing step. Defaults to:
             {
-                FT.pdb_file: False,
+                FT.pdb_file: True,
                 FT.glb_file: False,
                 FT.ply_file: False,
                 FT.ascii_file: False,
@@ -55,7 +55,7 @@ class AlphafoldDBParser:
     already_processed: list[str] = field(default_factory=lambda: set())
     keep_temp: dict[FT, bool] = field(
         default_factory=lambda: {
-            FT.pdb_file: False,
+            FT.pdb_file: True,
             FT.glb_file: False,
             FT.ply_file: False,
             FT.ascii_file: False,
@@ -615,3 +615,6 @@ class AlphafoldDBParser:
     def set_only_images(self, args: Namespace):
         if args.only_images is not None:
             self.only_images = args.only_images
+    def set_all_arguments(self, args:Namespace):
+        for func in [self.set_batch_size,self.set_dirs,self.set_alphafold_version,self.set_coloring_mode,self.set_chimerax,self.set_img_size,self.set_database]:
+            func(args)

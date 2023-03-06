@@ -14,13 +14,7 @@ def main():
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
-    parser.set_batch_size(args)
-    parser.set_dirs(args)
-    parser.set_alphafold_version(args)
-    parser.set_coloring_mode(args)
-    parser.set_chimerax(args)
-    parser.set_img_size(args)
-    parser.set_database(args)
+    parser.set_all_arguments(args)
 
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
