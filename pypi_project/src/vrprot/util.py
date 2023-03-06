@@ -209,8 +209,8 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        if not gui:
-            args.append("--nogui")
+        # if not gui:
+        #     args.append("--nogui")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
@@ -294,8 +294,8 @@ def combine_fractions(
         target = target.split("\\")
         target = "/".join(target)
         args = [script, directory, target, "-sp", "-mode", coloring_mode]
-        if not gui:
-            args.append("--nogui")
+        # if not gui:
+        #     args.append("--nogui")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         command = [

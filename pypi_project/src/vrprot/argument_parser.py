@@ -197,7 +197,7 @@ def argument_parser(exec_name="main.py"):
         "--with_gui",
         "-gui",
         action="store_true",
-        help="Turn on the gui mode of the ChimeraX processing.",
+        help="Turn on the gui mode of the ChimeraX processing. This has no effect on Windows systems as the GUI will always be turned on.",
         default=False,
     )
     parser.add_argument(
