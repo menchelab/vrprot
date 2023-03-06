@@ -63,8 +63,8 @@ def main(
             filename = file.split("/")[-1]
             # os.makedirs(f"{directory}/{first_structure}", exist_ok=True)
             # shutil.move(file, f"{directory}/{first_structure}/{filename}")
-    if subprocess:
-        run(session, "exit")
+    # if subprocess:
+    #     run(session, "exit")
 
 
 

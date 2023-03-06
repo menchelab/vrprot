@@ -209,9 +209,9 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
         if not gui:
-            command += " --nogui"
+            args.append("--nogui")
+        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
         command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
@@ -278,7 +278,7 @@ def remove_dirs(directory):
 
 
 def combine_fractions(
-    directory: str, target: str, coloring_mode: str, chimerax: str = None
+    directory: str, target: str, coloring_mode: str, chimerax: str = None,gui:bool=True
 ):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
@@ -290,6 +290,8 @@ def combine_fractions(
         target = target.split("\\")
         target = "/".join(target)
         args = [script,directory,target,"-sp","-mode",coloring_mode]
+        if not gui:
+            args.append("--nogui")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         command = [
@@ -297,6 +299,8 @@ def combine_fractions(
             "--script",
             f"{script} {directory} {target} -sp -mode {coloring_mode}",
         ]
+        if not gui:
+            command.append("--nogui")
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
     print("All multi fraction structures handled.")

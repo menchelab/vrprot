@@ -400,7 +400,7 @@ class AlphafoldDBParser:
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
         tmp = os.listdir(source)
-        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing)
+        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing,gui=self.gui)
         files = []
         for file in tmp:
             self.check_dirs(file, source)
@@ -588,8 +588,7 @@ class AlphafoldDBParser:
                     with open(out_file, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
                 os.remove(in_file)
-        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing)
-        exit()
+        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing,gui=self.gui)
         self.proteins_from_dir(self.PDB_DIR)
 
     def clear_default_dirs(self) -> None:
