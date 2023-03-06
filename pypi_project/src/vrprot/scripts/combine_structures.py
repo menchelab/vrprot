@@ -8,6 +8,7 @@ import os
 import shutil
 import sys
 import argparse
+import re
 
 SCRIPTS = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(SCRIPTS)
@@ -36,36 +37,49 @@ def main(
     bundle = chimerax_bundle.Bundle(session, directory, target)
     bundle.apply_processing(processing, color)
     while len(all_files) > 1:
+        # Get first structure ID and version
         first_structure = os.path.basename(all_files[0])
-        ver = first_structure.split("_")[1].replace(".pdb", "")
-        # run(session, f"echo {ver}")
-        first_structure = first_structure.split("-")[1]
+        ver = re.findall(r"_v(\d+)\.pdb", first_structure)[0]
+        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
+
+        # Find all files with same structure ID
         structures = []
         for file in all_files:
             tmp = os.path.basename(file)
-            tmp = tmp.split("-")[1]
+            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
             if tmp == first_structure:
                 structures.append(file)
+
         if len(structures) == 1:
             all_files.remove(structures[0])
             continue
+        if os.path.exists(f"{target}/AF-{first_structure}-F1-model_{ver}.glb"):
+            for file in structures:
+                all_files.remove(file)
+            continue
+
+        # Run bundle command on all files
         files = [os.path.basename(file) for file in structures]
-        bundle.run(files)
-        for file in files:
+        tmp_names = ["tmp_" + file for file in files]
+        bundle.run(files, tmp_names)
+
+        # Open and save file for first structure
+        for file in tmp_names:
             run(session, f'open {target}/{file.replace("pdb","glb")}')
         run(session, f"save {target}/AF-{first_structure}-F1-model_{ver}.glb")
-        for file in files:
-            if file.replace("pdb", "glb") != f"AF-{first_structure}-F1-model_{ver}.glb":
-                os.remove(f"{target}/{file.replace('pdb','glb')}")
+
+        # Remove all other files for this structure
+        for file in tmp_names:
+            os.remove(f"{target}/{file.replace('pdb','glb')}")
+
+        # Close session and remove processed files from all_files
         run(session, "close")
         for file in structures:
             all_files.remove(file)
-            filename = file.split("/")[-1]
             # os.makedirs(f"{directory}/{first_structure}", exist_ok=True)
             # shutil.move(file, f"{directory}/{first_structure}/{filename}")
-    # if subprocess:
-    #     run(session, "exit")
-
+    if subprocess:
+        run(session, "exit")
 
 
 if __name__ == "ChimeraX_sandbox_1":

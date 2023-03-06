@@ -278,7 +278,11 @@ def remove_dirs(directory):
 
 
 def combine_fractions(
-    directory: str, target: str, coloring_mode: str, chimerax: str = None,gui:bool=True
+    directory: str,
+    target: str,
+    coloring_mode: str,
+    chimerax: str = None,
+    gui: bool = True,
 ):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
@@ -289,7 +293,7 @@ def combine_fractions(
         directory = "/".join(directory)
         target = target.split("\\")
         target = "/".join(target)
-        args = [script,directory,target,"-sp","-mode",coloring_mode]
+        args = [script, directory, target, "-sp", "-mode", coloring_mode]
         if not gui:
             args.append("--nogui")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'

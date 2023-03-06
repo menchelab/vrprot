@@ -40,16 +40,17 @@ class Bundle:
         "Open structure"
         self.pipeline[0] = f"open {structure}"
 
-    def run_pipeline(self, structure):
+    def run_pipeline(self, structure, tmp_name):
         """
         Function to executed the pipeline and save the file as glb
         """
-        file_name = structure[:-3]
-        save_loc = f"{self.target}/{file_name}glb"
+        out_name = structure.replace("pdb", "glb")
+        tmp_name = tmp_name.replace("pdb", "glb")
+        save_loc = f"{self.target}/{tmp_name}"
         pipeline = self.pipeline.copy()
         if self.images:
-            self.take_screenshot(file_name)
-            pipeline = pipeline[:-2] + self.take_screenshot(file_name) + pipeline[-2:]
+            self.take_screenshot(out_name)
+            pipeline = pipeline[:-2] + self.take_screenshot(out_name) + pipeline[-2:]
         if not self.only_images:
             pipeline[-2] = f"save {save_loc}"
         for command in pipeline:
@@ -279,11 +280,13 @@ class Bundle:
         else:
             self.pipeline += ["save", "close"]
 
-    def run(self, file_names):
-        for structure in list(file_names):
+    def run(self, file_names, tmp_names=None):
+        if tmp_names is None:
+            tmp_names = file_names
+        for structure, tmp_name in zip(file_names, tmp_names):
             run(self.session, f"echo {structure}")
             self.open_file(os.path.join(self.path, structure))
-            self.run_pipeline(structure)
+            self.run_pipeline(structure, tmp_name)
         # Close ChimeraX
 
 

@@ -34,7 +34,7 @@ class AlphafoldDBParser:
         overview_file (str): Path to where to store the overview file in which the scale of each protein strucure and the color mode is stored. Defaults to "./static/csv/overview.csv".
         structures (dict[str,ProteinStructure]): Dictionary that maps strings of structures to the ProteinStructure object. Defaults to {}.
         not_fetched set[str]: Set of protein structures which could no be fetched. Deafults to [].
-        keep_temp dict[FT, bool]: Configuration to keep or remove processing files like PDB or GLB files after each processing step. Defaults to:
+        keep_tmp dict[FT, bool]: Configuration to keep or remove processing files like PDB or GLB files after each processing step. Defaults to:
             {
                 FT.pdb_file: True,
                 FT.glb_file: False,
@@ -53,7 +53,7 @@ class AlphafoldDBParser:
     structures: dict[str, ProteinStructure] = field(default_factory=lambda: {})
     not_fetched: list[str] = field(default_factory=lambda: set())
     already_processed: list[str] = field(default_factory=lambda: set())
-    keep_temp: dict[FT, bool] = field(
+    keep_tmp: dict[FT, bool] = field(
         default_factory=lambda: {
             FT.pdb_file: True,
             FT.glb_file: False,
@@ -220,7 +220,7 @@ class AlphafoldDBParser:
         """
         Processes the .pdb files using ChimeraX and the bundle chimerax_bundle.py. Default processing mode is ColoringModes.cartoons_sscoloring
         As default, the source pdb file is NOT removed.
-        To change this set self.keep_temp[FT.pdb_file] = False.
+        To change this set self.keep_tmp[FT.pdb_file] = False.
         """
         colors = None
         self.chimerax = util.search_for_chimerax()
@@ -264,7 +264,7 @@ class AlphafoldDBParser:
                 self.only_images,
             )
             for structure in tmp_strucs:
-                if not self.keep_temp[FT.pdb_file] and os.path.isfile(
+                if not self.keep_tmp[FT.pdb_file] and os.path.isfile(
                     structure.pdb_file
                 ):
                     os.remove(structure.pdb_file)
@@ -274,7 +274,7 @@ class AlphafoldDBParser:
         """
         Converts the .glb files to .ply files.
         As default, the source glb file is removed afterwards.
-        To change this set self.keep_temp[FT.glb_file] = True.
+        To change this set self.keep_tmp[FT.glb_file] = True.
         """
         for protein in proteins:
             structure = self.structures[protein]
@@ -293,14 +293,14 @@ class AlphafoldDBParser:
                         f"Converted {structure.glb_file} to {structure.ply_file}"
                     )
                     structure.existing_files[FT.ply_file] = True
-                    if not self.keep_temp[FT.glb_file]:
+                    if not self.keep_tmp[FT.glb_file]:
                         os.remove(structure.glb_file)  # remove source file
 
     def sample_pcd(self, proteins: list[str]) -> None:
         """
         Samples the pointcloud form the ply files.
         As default, the source ply file is removed afterwards.
-        To change this set self.keep_temp[FT.ply_file] = True.
+        To change this set self.keep_tmp[FT.ply_file] = True.
         """
         for protein in proteins:
             structure = self.structures[protein]
@@ -325,7 +325,7 @@ class AlphafoldDBParser:
                         f"Sampling of {structure.ply_file} failed. No file {structure.ascii_file} was created."
                     )
                     self.not_fetched.add(protein)
-                if not self.keep_temp[FT.ply_file]:
+                if not self.keep_tmp[FT.ply_file]:
                     os.remove(structure.ply_file)
 
     def gen_maps(self, proteins: list[str]) -> None:
@@ -333,7 +333,7 @@ class AlphafoldDBParser:
         Generates the maps from the point cloud files.
         If all of the output files already exists, this protein is skipped.
         As default, the source ascii point cloud is removed afterwards.
-        To change this set self.keep_temp[FT.ascii_file] = True.
+        To change this set self.keep_tmp[FT.ascii_file] = True.
         """
         for protein in proteins:
             structure = self.structures[protein]
@@ -359,7 +359,7 @@ class AlphafoldDBParser:
                 structure.existing_files[FT.rgb_file] = True
                 structure.existing_files[FT.xyz_low_file] = True
                 structure.existing_files[FT.xyz_high_file] = True
-                if not self.keep_temp[FT.ascii_file]:
+                if not self.keep_tmp[FT.ascii_file]:
                     os.remove(structure.ascii_file)
 
     def write_scale(self, protein) -> None:
@@ -400,7 +400,9 @@ class AlphafoldDBParser:
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
         tmp = os.listdir(source)
-        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing,gui=self.gui)
+        util.combine_fractions(
+            self.PDB_DIR, self.GLB_DIR, self.processing, gui=self.gui
+        )
         files = []
         for file in tmp:
             self.check_dirs(file, source)
@@ -523,12 +525,12 @@ class AlphafoldDBParser:
         """Uses arguments from the argument parser Namespace and sets the switch to keep or to remove the corresponding file types after a processing step is completed."""
         if args.keep_pdb is not None:
             self.keep_tmp[FT.pdb_file] = args.keep_pdb
-        if args.kee_glb is not None:
-            self.keep_temp[FT.glb_file] = args.kee_glb
-        if args.kee_ply is not None:
-            self.keep_temp[FT.ply_file] = args.kee_ply
+        if args.keep_glb is not None:
+            self.keep_tmp[FT.glb_file] = args.keep_glb
+        if args.keep_ply is not None:
+            self.keep_tmp[FT.ply_file] = args.keep_ply
         if args.keep_ascii is not None:
-            self.keep_temp[FT.ascii_file] = args.keep_ascii
+            self.keep_tmp[FT.ascii_file] = args.keep_ascii
 
     def set_batch_size(self, args: Namespace) -> None:
         """Parsers arguments from the argument parser Namespace and sets the batch size to the corresponding value."""
@@ -588,7 +590,9 @@ class AlphafoldDBParser:
                     with open(out_file, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
                 os.remove(in_file)
-        util.combine_fractions(self.PDB_DIR, self.GLB_DIR, self.processing,gui=self.gui)
+        util.combine_fractions(
+            self.PDB_DIR, self.GLB_DIR, self.processing, gui=self.gui
+        )
         self.proteins_from_dir(self.PDB_DIR)
 
     def clear_default_dirs(self) -> None:
@@ -614,6 +618,19 @@ class AlphafoldDBParser:
     def set_only_images(self, args: Namespace):
         if args.only_images is not None:
             self.only_images = args.only_images
-    def set_all_arguments(self, args:Namespace):
-        for func in [self.set_batch_size,self.set_dirs,self.set_alphafold_version,self.set_coloring_mode,self.set_chimerax,self.set_img_size,self.set_database]:
+
+    def set_all_arguments(self, args: Namespace):
+        for func in [
+            self.set_batch_size,
+            self.set_dirs,
+            self.set_alphafold_version,
+            self.set_coloring_mode,
+            self.set_chimerax,
+            self.set_img_size,
+            self.set_database,
+            self.set_keep_tmp,
+            self.set_only_images,
+            self.set_thumbnails,
+            self.set_gui,
+        ]:
             func(args)
