@@ -49,7 +49,6 @@ class Bundle:
         save_loc = f"{self.target}/{tmp_name}"
         pipeline = self.pipeline.copy()
         if self.images:
-            self.take_screenshot(out_name)
             pipeline = pipeline[:-2] + self.take_screenshot(out_name) + pipeline[-2:]
         if not self.only_images:
             pipeline[-2] = f"save {save_loc}"
@@ -225,12 +224,13 @@ class Bundle:
         """
         Takes a screenshot of the current scene and saves it to the specified path.
         """
-        if os.path.isfile(f"{self.images}/{structure}png"):
+        out_name = structure.replace(".glb", ".png")
+        if os.path.isfile(f"{self.images}/{out_name}"):
             return []
         unselect = "~select"
         view = "view"
 
-        save = f"save {self.images}/{structure}png width 512 height 512 supersample 3 transparentBackground true"
+        save = f"save {self.images}/{out_name} width 512 height 512 supersample 3 transparentBackground true"
         select = f"select"
         return [unselect, view, save, select]
 
