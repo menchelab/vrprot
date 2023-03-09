@@ -14,14 +14,14 @@ class Logger:
     def __init__(self, name, level=LOG_LEVEL):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setLevel(level)
+        self.consoleHandler = logging.StreamHandler()
+        self.consoleHandler.setLevel(level)
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s %(levelname)s: %(message)s",
             datefmt="%m/%d/%Y %I:%M:%S%p",
         )
-        consoleHandler.setFormatter(formatter)
-        self.logger.addHandler(consoleHandler)
+        self.consoleHandler.setFormatter(formatter)
+        self.logger.addHandler(self.consoleHandler)
 
     def info(self, message):
         self.logger.info(message)
@@ -34,6 +34,20 @@ class Logger:
 
     def error(self, message):
         self.logger.error(message)
+
+    def set_level(self, level):
+        self.consoleHandler.addFilter(LogFilter(level))
+
+
+class LogFilter:
+    def __init__(self, level):
+        self.__level = level
+
+    def filter(self, logRecord):
+        if self.__level == logging.INFO:
+            return logRecord.levelno == self.__level
+        else:
+            return logRecord.levelno >= self.__level
 
 
 class FileTypes(Enum):

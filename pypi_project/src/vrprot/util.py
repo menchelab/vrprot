@@ -5,11 +5,10 @@ import platform
 import shutil
 import subprocess as sp
 import time
-
+import re
 import requests
 import trimesh
-from trimesh.exchange import ply
-from trimesh.exchange.export import export_mesh
+import pyglet
 
 from .classes import AlphaFoldVersion, FileTypes, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
@@ -214,8 +213,8 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         #     + '"'
         # )
     elif platform.system() == "Windows":
-        # if not gui:
-        #     args.append("--nogui")
+        if not gui:
+            args.append("--nogui")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         # call chimeraX with commandline in a subprocess
@@ -248,19 +247,29 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     Args:
         glb_file (string): Path to the glb file.
     """
-    save_location, _ = ntpath.split(glb_file)
-    os.makedirs(save_location, exist_ok=True)
-    mesh = trimesh.load(glb_file, force="mesh")
+    try:
+        save_location, _ = ntpath.split(glb_file)
+        os.makedirs(save_location, exist_ok=True)
+        log.debug(f"Loading the glb file: {glb_file}")
+        mesh = trimesh.load(glb_file, force="mesh")
+        trimesh.exchange.export.export_mesh(mesh, ply_file, "ply")
+    except Exception as e:
+        log.error(f"Could not convert {glb_file} to {ply_file}")
+        log.error(e)
+        return False
     if debug:
-        mesh.show()
-    export_mesh(mesh, ply_file, "ply")
-    ## Deprecated
-    # file = ply.export_ply(mesh)
-    # with open(ply_file, "wb+") as f:
-    #     f.write(file)
-    if debug:
-        mesh = trimesh.load(ply_file, force="mesh")
-        mesh.show()
+        try:
+            log.debug("Try to display the glb file.")
+            log.error(f"GLTF file: {glb_file}")
+            log.error(f"{os.stat(glb_file).st_size/1024**1} KB")
+            mesh.show()
+            log.error(f"PLY file: {ply_file}")
+            log.error(f"{os.stat(ply_file).st_size/1024**1} KB")
+            log.debug(f"Try to display the ply file.")
+            mesh = trimesh.load(ply_file, force="mesh")
+            mesh.show()
+        except Exception as er:
+            log.error(f"Could not display GLTF or PLY file, maybe its to small?")
     return True
 
 
@@ -270,7 +279,7 @@ def batch(
     """Will run the functions listed in funcs in a batched process."""
     start = 0
     end = batch_size
-    que = proteins.copy()
+    que = list(proteins).copy()
     while len(que) > 0:
         log.debug(f"Starting Batch form: {start} to {end}")
         batch_proteins = que[:batch_size]
@@ -293,6 +302,7 @@ def combine_fractions(
     coloring_mode: str,
     chimerax: str = None,
     gui: bool = True,
+    overwrite: bool = False,
 ):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
@@ -304,8 +314,10 @@ def combine_fractions(
         target = target.split("\\")
         target = "/".join(target)
         args = [script, directory, target, "-sp", "-mode", coloring_mode]
-        # if not gui:
-        #     args.append("--nogui")
+        if not gui:
+            args.append("--nogui")
+        if overwrite:
+            args.append("-ow")
         command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
     else:
         command = [
@@ -315,9 +327,30 @@ def combine_fractions(
         ]
         if not gui:
             command.append("--nogui")
+        if overwrite:
+            command.append("-ow")
+
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
+    all_files = glob.glob(f"{directory}/*.pdb")
+    multi_fraction_structures = []
+    while len(all_files) > 1:
+        first_structure = os.path.basename(all_files[0])
+        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
+        structures = []
+        for file in all_files:
+            tmp = os.path.basename(file)
+            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
+            if tmp == first_structure:
+                structures.append(file)
+        if len(structures) == 1:
+            all_files.remove(structures[0])
+            continue
+        multi_fraction_structures.append(first_structure)
+        for file in structures:
+            all_files.remove(file)
     print("All multi fraction structures handled.")
+    return multi_fraction_structures
 
 
 def free_space(

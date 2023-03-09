@@ -7,9 +7,10 @@ from src.vrprot.classes import Logger
 log = Logger("main")
 
 
-def main():
+def main(args=None):
     """Main function will take the arguments passed by the user and execute the program accordingly."""
-    args = argument_parser().parse_args()
+    if args is None:
+        args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
     if args.mode == "clear":
         parser.clear_default_dirs()
@@ -19,13 +20,15 @@ def main():
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
     if args.mode == "local":
-        parser.execute_local(args.source[0])
+        parser.execute_local(args.source)
     if args.mode == "list":
         with open(args.file[0]) as f:
             proteins = f.read().splitlines()
         parser.execute_from_object(proteins)
     if args.mode == "bulk":
-        parser.execute_from_bulk(args.source[0])
+        parser.execute_from_bulk(args.source)
+    if args.mode == "extract":
+        parser.extract_archive(args.archive)
 
 
 if __name__ == "__main__":

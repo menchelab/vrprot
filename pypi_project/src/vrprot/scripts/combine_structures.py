@@ -53,7 +53,10 @@ def main(
         if len(structures) == 1:
             all_files.remove(structures[0])
             continue
-        if os.path.exists(f"{target}/AF-{first_structure}-F1-model_{ver}.glb"):
+        if (
+            os.path.exists(f"{target}/AF-{first_structure}-F1-model_v{ver}.glb")
+            and not overwrite
+        ):
             for file in structures:
                 all_files.remove(file)
             continue
@@ -66,7 +69,7 @@ def main(
         # Open and save file for first structure
         for file in tmp_names:
             run(session, f'open {target}/{file.replace("pdb","glb")}')
-        run(session, f"save {target}/AF-{first_structure}-F1-model_{ver}.glb")
+        run(session, f"save {target}/AF-{first_structure}-F1-model_v{ver}.glb")
 
         # Remove all other files for this structure
         for file in tmp_names:
@@ -104,14 +107,21 @@ if __name__ == "ChimeraX_sandbox_1":
         help="The processing mode that should be applied to the structures.",
         default="cartoons_ss_coloring",
     )
+    parser.add_argument(
+        "--overwrite",
+        "-ow",
+        help="If this is set, the script will overwrite existing files.",
+        default=False,
+        action="store_true",
+    )
     # parser.add_argument("--colors","-c", help="The coloring that should be applied to the structures.", default=['red','green','blue'],nargs=3,type=str)
     args = parser.parse_args()
     directory = args.directory
     target = args.target
     subprocess = args.subprocess
     processing = args.processing_mode
-    print(processing)
+    overwrite = args.overwrite
     # color = ast.literal_eval(args.colors)
     color = ["red", "green", "blue"]
     run(session, f"echo {subprocess}")
-    main(directory, target, subprocess, processing, color)
+    main(directory, target, subprocess, processing, color, overwrite)

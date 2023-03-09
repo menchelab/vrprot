@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from .classes import AlphaFoldVersion, ColoringModes, Database
+from logging import _nameToLevel
 
 COLORMODE_CHOICES = ", ".join(list(col.value for col in ColoringModes)[:5])
 
@@ -16,7 +17,6 @@ def argument_parser(exec_name="main.py"):
     fetch_parser.add_argument(
         "proteins",
         type=str,
-        nargs=1,
         help="Proteins to fetch, which are separated by a comma.",
     )
     # Argument parser for processing from a directory in which either a pdb, glb, ply or xyzrgb file is contained and proceeding from this step onward.
@@ -28,7 +28,6 @@ def argument_parser(exec_name="main.py"):
         "source",
         type=str,
         help="Directory containing the files",
-        nargs=1,
         action="store",
     )
     # Argument parser for fetching and processing a list of protein structures
@@ -39,8 +38,17 @@ def argument_parser(exec_name="main.py"):
     list_parser.add_argument(
         "file",
         type=str,
-        nargs=1,
         help="File from which the proteins are extracted from.",
+        action="store",
+    )
+    extract_parser = subparsers.add_parser(
+        "extract",
+        help="Extracts the protein structures from AlphaFold DB bulk download.",
+    )
+    extract_parser.add_argument(
+        "archive",
+        type=str,
+        help="Path to the tar archive",
     )
     # Argument parser for for unpacking tar archived from a bulk download from AlphaFold DB. Furthermore multi fraction protein structures are combined into a single glb file.
     bulk_parser = subparsers.add_parser(
@@ -51,7 +59,6 @@ def argument_parser(exec_name="main.py"):
         "source",
         type=str,
         help="Path to the tar archive",
-        nargs=1,
         action="store",
     )
 
@@ -218,6 +225,12 @@ def argument_parser(exec_name="main.py"):
         "-ow",
         action="store_true",
         help="Overwrites existing files.",
+    )
+    parser.add_argument(
+        "--log_level",
+        "-ll",
+        type=str,
+        choices=list(_nameToLevel.keys()),
     )
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
