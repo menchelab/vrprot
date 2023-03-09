@@ -45,7 +45,7 @@ class LogFilter:
 
     def filter(self, logRecord):
         if self.__level == logging.INFO:
-            return logRecord.levelno == self.__level
+            return logRecord.levelno in [logging.INFO, logging.WARNING, logging.ERROR]
         else:
             return logRecord.levelno >= self.__level
 
@@ -91,6 +91,26 @@ class ProteinStructure:
             if os.path.exists(file):
                 exists = True
             self.existing_files[FileTypes.__members__[file_type]] = exists
+
+    def update_file_existence(self, file_type):
+        if isinstance(file_type, list):
+            for f_type in file_type:
+                self.update_file_existence(f_type)
+            return
+        path = {
+            FileTypes.pdb_file: self.pdb_file,
+            FileTypes.glb_file: self.glb_file,
+            FileTypes.ply_file: self.ply_file,
+            FileTypes.ascii_file: self.ascii_file,
+            FileTypes.rgb_file: self.rgb_file,
+            FileTypes.xyz_low_file: self.xyz_low_file,
+            FileTypes.xyz_high_file: self.xyz_high_file,
+            FileTypes.thumbnail_file: self.thumbnail_file,
+        }
+        if os.path.exists(path[file_type]):
+            self.existing_files[file_type] = True
+        else:
+            self.existing_files[file_type] = False
 
 
 class ColoringModes(Enum):

@@ -1,15 +1,13 @@
 #! python3
+from timeit import timeit
 from main import main
 from src.vrprot.argument_parser import argument_parser
 import sys
-from timeit import timeit
 
 
 def benchmark_local():
-    pcc = False
-    if "-pcc" in sys.argv:
-        pcc = True
-    sys.argv = [
+    arguments = []
+    arguments = [
         "main.py",
         "-ow",
         "-ll",
@@ -17,17 +15,43 @@ def benchmark_local():
         "local",
         "./processing_files/pdbs",
     ]
-    if pcc:
-        sys.argv = ["-pcc"] + sys.argv
+    if "-pcc" in sys.argv:
+        arguments = arguments[:1] + ["-pcc"] + arguments[1:]
+    if "-parallel" in sys.argv or "-p" in sys.argv:
+        arguments = arguments[:1] + ["-p"] + arguments[1:]
+    sys.argv = arguments
+    args = argument_parser().parse_args()
+    main(args)
+
+
+def benchmark_from_bulk():
+    arguments = []
+    arguments = [
+        "main.py",
+        "-ow",
+        "-ll",
+        "INFO",
+        "bulk",
+        "../../static/UP000000805_243232_METJA_v4_Kopie.tar",
+    ]
+    if "-pcc" in sys.argv:
+        arguments = arguments[:1] + ["-pcc"] + arguments[1:]
+    if "-parallel" in sys.argv or "-p" in sys.argv:
+        arguments = arguments[:1] + ["-p"] + arguments[1:]
+    sys.argv = arguments
     args = argument_parser().parse_args()
     main(args)
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "local":
-        n = 5
-        runtime = timeit(benchmark_local, number=n)
-        print(f"{n} repetitions took", runtime, "seconds")
-        print("Average time per repetition:", runtime / n)
-
-    # sequential 50 runs:
+    func = {
+        "local": benchmark_local,
+        "bulk": benchmark_from_bulk,
+    }
+    if len(sys.argv) > 1:
+        if sys.argv[1] in func:
+            func = func[sys.argv[1]]
+            n = 10
+            runtime = timeit(func, number=n)
+            print(f"{n} repetitions took", runtime, "seconds")
+            print("Average time per repetition:", runtime / 10)

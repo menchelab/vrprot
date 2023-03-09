@@ -232,6 +232,13 @@ def argument_parser(exec_name="main.py"):
         type=str,
         choices=list(_nameToLevel.keys()),
     )
+    parser.add_argument(
+        "--parallel",
+        "-p",
+        action="store_true",
+        help="Defines whether to use parallel processing.",
+        default=False,
+    )
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()

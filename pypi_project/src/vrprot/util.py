@@ -282,23 +282,6 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     return True
 
 
-def batch(
-    funcs: list[object], proteins: list[str], batch_size: int = 50, **kwargs
-) -> None:
-    """Will run the functions listed in funcs in a batched process."""
-    start = 0
-    end = batch_size
-    que = list(proteins).copy()
-    while len(que) > 0:
-        log.debug(f"Starting Batch form: {start} to {end}")
-        batch_proteins = que[:batch_size]
-        for func in funcs:
-            func(batch_proteins, **kwargs)
-        start = end
-        end += batch_size
-        del que[:batch_size]
-
-
 def remove_dirs(directory):
     """Removes a directory an all underlying subdirectories. WARNING this can lead to loss of data!"""
     if os.path.isdir(directory):
@@ -336,36 +319,18 @@ def combine_fractions(
             + '"'
         )
     else:
-        command = [
-            chimerax,
+        command = [chimerax]
+        if not gui:
+            command.append("--nogui")
+        command += [
             "--script",
             f"{script} {directory} {target} -sp -mode {coloring_mode}",
         ]
-        if not gui:
-            command.append("--nogui")
         if overwrite:
-            command.append("-ow")
+            command[-1] += " -ow"
 
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
-    all_files = glob.glob(f"{directory}/*.pdb")
-    multi_fraction_structures = []
-    while len(all_files) > 1:
-        first_structure = os.path.basename(all_files[0])
-        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
-        structures = []
-        for file in all_files:
-            tmp = os.path.basename(file)
-            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
-            if tmp == first_structure:
-                structures.append(file)
-        if len(structures) == 1:
-            all_files.remove(structures[0])
-            continue
-        multi_fraction_structures.append(first_structure)
-        for file in structures:
-            all_files.remove(file)
-    return multi_fraction_structures
 
 
 def free_space(
@@ -416,3 +381,24 @@ def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
     for ft, files in tmp.items():
         for file in files:
             os.remove(file)
+
+
+def find_fractions(directory: str):
+    all_files = glob.glob(f"{directory}/*.pdb")
+    multi_fraction_structures = []
+    while len(all_files) > 1:
+        first_structure = os.path.basename(all_files[0])
+        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
+        structures = []
+        for file in all_files:
+            tmp = os.path.basename(file)
+            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
+            if tmp == first_structure:
+                structures.append(file)
+        if len(structures) == 1:
+            all_files.remove(structures[0])
+            continue
+        multi_fraction_structures.append(first_structure)
+        for file in structures:
+            all_files.remove(file)
+    return multi_fraction_structures

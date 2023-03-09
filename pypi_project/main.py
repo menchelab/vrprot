@@ -16,7 +16,6 @@ def main(args=None):
         parser.clear_default_dirs()
         exit()
     parser.set_all_arguments(args)
-
     if args.mode == "fetch":
         parser.execute_fetch(args.proteins[0])
     if args.mode == "local":
