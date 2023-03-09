@@ -72,6 +72,7 @@ class AlphafoldDBParser:
     colors: list[str] = field(default_factory=lambda: ["red", "green", "blue"])
     gui: bool = False
     only_images: bool = False
+    pcc_preview: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -210,7 +211,7 @@ class AlphafoldDBParser:
                         self.not_fetched.add(protein)
             else:
                 self.log.debug(
-                    f"Structure {protein} is already processed and overwrite is not allowed."
+                    f"Structure {protein} is already processed and refetch is not allowed."
                 )
         if on_demand:
             util.remove_cached_files(
@@ -277,6 +278,7 @@ class AlphafoldDBParser:
         As default, the source glb file is removed afterwards.
         To change this set self.keep_tmp[FT.glb_file] = True.
         """
+        # TODO can be parallelized
         for protein in proteins:
             structure = self.structures[protein]
             if (
@@ -303,6 +305,7 @@ class AlphafoldDBParser:
         As default, the source ply file is removed afterwards.
         To change this set self.keep_tmp[FT.ply_file] = True.
         """
+        # TODO can be parallelized
         for protein in proteins:
             structure = self.structures[protein]
             if (
@@ -313,6 +316,7 @@ class AlphafoldDBParser:
                     structure.ply_file,
                     structure.ascii_file,
                     self.img_size * self.img_size,
+                    debug=self.pcc_preview,
                 )
                 if os.path.isfile(structure.ascii_file):
                     structure.existing_files[FT.ascii_file] = True
@@ -336,6 +340,7 @@ class AlphafoldDBParser:
         As default, the source ascii point cloud is removed afterwards.
         To change this set self.keep_tmp[FT.ascii_file] = True.
         """
+        # TODO can be parallelized
         for protein in proteins:
             structure = self.structures[protein]
             if (
@@ -367,6 +372,7 @@ class AlphafoldDBParser:
         """
         Writes the scale of the protein to the overview file. This file is used to keep track of the scale of each protein structure.
         """
+        # Write the scales you received all at once when parallelized
         structure = self.structures[protein]
         ov_util.write_scale(
             structure.uniprot_id,
@@ -622,6 +628,14 @@ class AlphafoldDBParser:
         if args.only_images is not None:
             self.only_images = args.only_images
 
+    def set_pcc_preview(self, args: Namespace):
+        if args.pcc_preview is not None:
+            self.pcc_preview = args.pcc_preview
+
+    def set_overwrite(self, args: Namespace):
+        if args.overwrite is not None:
+            self.overwrite = args.overwrite
+
     def set_all_arguments(self, args: Namespace):
         for func in [
             self.set_batch_size,
@@ -635,5 +649,7 @@ class AlphafoldDBParser:
             self.set_only_images,
             self.set_thumbnails,
             self.set_gui,
+            self.set_pcc_preview,
+            self.set_overwrite,
         ]:
             func(args)

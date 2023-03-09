@@ -202,7 +202,12 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
             ("%s " * len(args)) % (tuple(args)),
         ]
         if not gui:
-            command.append("--offscreen")
+            command = [
+                chimerax,
+                "--offscreen",
+                "--script",
+                ("%s " * len(args)) % (tuple(args)),
+            ]
         # command = (
         #     '%s --offscreen --script "' % chimerax
         #     + ("%s " * len(arg)) % (tuple(arg))
@@ -216,7 +221,12 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         # call chimeraX with commandline in a subprocess
         command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
         if not gui:
-            command.append("--nogui")
+            command = [
+                chimerax,
+                "--nogui",
+                "--script",
+                ("%s " * len(args)) % (tuple(args)),
+            ]
     try:
         process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
         # wait until chimeraX is finished with processing

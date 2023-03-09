@@ -207,6 +207,18 @@ def argument_parser(exec_name="main.py"):
         help="Only take images of the processed structures.",
         default=False,
     )
+    parser.add_argument(
+        "--pcc_preview",
+        "-pcc",
+        action="store_true",
+        help="Presents the point clound color map in a preview window.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-ow",
+        action="store_true",
+        help="Overwrites existing files.",
+    )
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()

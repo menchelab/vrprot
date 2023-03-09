@@ -70,6 +70,10 @@ def sample_pcd(
         o3d.visualization.draw_geometries([mesh_combined])
     # sample points from merged mesh
     pcd = mesh_combined.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
+    if debug:
+        down = mesh_combined.sample_points_uniformly(number_of_points=5000)
+        down.paint_uniform_color([0, 0, 0])
+        o3d.visualization.draw_geometries([down])
 
     # write point cloud as xyzrgb file (create new folder if ASCII_cloud does not exist)
     # containing xyz values and rgb values (as float [0,1]) for each point
