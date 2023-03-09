@@ -417,12 +417,11 @@ class AlphafoldDBParser:
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
         tmp = os.listdir(source)
-        if platform.system() != "Windows":
-            new_multi_fractions = util.combine_fractions(
-                self.PDB_DIR, self.GLB_DIR, self.processing, gui=self.gui
-            )
-            for fraction in new_multi_fractions:
-                self.multi_fraction.append(fraction)
+        new_multi_fractions = util.combine_fractions(
+            self.PDB_DIR, self.GLB_DIR, self.processing, gui=self.gui
+        )
+        for fraction in new_multi_fractions:
+            self.multi_fraction.append(fraction)
         files = []
         for file in tmp:
             self.check_dirs(file, source)

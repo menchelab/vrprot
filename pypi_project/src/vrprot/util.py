@@ -213,9 +213,18 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         #     + '"'
         # )
     elif platform.system() == "Windows":
+        chimerax_arguments = [chimerax]
+
         if not gui:
-            args.append("--nogui")
-        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
+            chimerax_arguments.append("--nogui")
+
+        chimerax_arguments.append("--script")
+        command = (
+            "%s " % " ".join(chimerax_arguments)
+            + ' "'
+            + ("%s " * len(args)) % (tuple(args))
+            + '"'
+        )
     else:
         # call chimeraX with commandline in a subprocess
         command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
@@ -314,11 +323,18 @@ def combine_fractions(
         target = target.split("\\")
         target = "/".join(target)
         args = [script, directory, target, "-sp", "-mode", coloring_mode]
+        chimerax_arguments = [chimerax]
         if not gui:
-            args.append("--nogui")
+            chimerax_arguments.append("--nogui")
         if overwrite:
             args.append("-ow")
-        command = '%s --script "' % chimerax + ("%s " * len(args)) % (tuple(args)) + '"'
+        chimerax_arguments.append("--script")
+        command = (
+            "%s " % " ".join(chimerax_arguments)
+            + ' "'
+            + ("%s " * len(args)) % (tuple(args))
+            + '"'
+        )
     else:
         command = [
             chimerax,
@@ -349,7 +365,6 @@ def combine_fractions(
         multi_fraction_structures.append(first_structure)
         for file in structures:
             all_files.remove(file)
-    print("All multi fraction structures handled.")
     return multi_fraction_structures
 
 

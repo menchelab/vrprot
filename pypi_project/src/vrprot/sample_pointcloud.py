@@ -69,9 +69,9 @@ def sample_pcd(
     if debug:
         o3d.visualization.draw_geometries([mesh_combined])
     # sample points from merged mesh
-    pcd = mesh_combined.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
+    pcd = mesh.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
     if debug:
-        down = mesh_combined.sample_points_uniformly(number_of_points=5000)
+        down = mesh.sample_points_uniformly(number_of_points=5000)
         down.paint_uniform_color([0, 0, 0])
         o3d.visualization.draw_geometries([down])
 
@@ -82,6 +82,7 @@ def sample_pcd(
     o3d.io.write_point_cloud(output, pcd)
     # # Debug to view structure with cube.
     if debug:
+        o3d.visualization.draw_geometries([pcd])
         o3d.visualization.draw_geometries([pcd, cube_no_line, mesh_bounding_box_new])
     return scale
 

@@ -9,7 +9,7 @@ def benchmark_local():
     sys.argv = [
         "main.py",
         "-ow",
-        # "-pcc",
+        "-pcc",
         "-ll",
         "INFO",
         "local",
