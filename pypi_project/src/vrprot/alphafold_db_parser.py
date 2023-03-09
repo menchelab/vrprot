@@ -657,7 +657,6 @@ class AlphafoldDBParser:
         """Extracts a tar archive to the PDB directory."""
         tar = tarfile.open(source)
         ext = ".pdb.gz"
-        "immediately"
         for member in tar.getmembers():
             if member.name.endswith(ext):
                 tar.extract(member, self.PDB_DIR)
