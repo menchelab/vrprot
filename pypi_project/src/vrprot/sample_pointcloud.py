@@ -7,6 +7,7 @@ import open3d as o3d
 
 from .classes import Logger
 from .util import FILE_DIR
+import traceback
 
 CUBE_NO_LINES = os.path.join(FILE_DIR, "static", "3d_objects", "Cube_no_lines.ply")
 log = Logger("SamplePointCloud")
@@ -22,8 +23,13 @@ def sample_pcd(
     if cube_no_line is None:
         cube_no_line = CUBE_NO_LINES
     # get protein name & read mesh as .ply format
-    mesh = o3d.io.read_triangle_mesh(ply_file)
-    mesh.compute_vertex_normals()
+    try:
+        mesh = o3d.io.read_triangle_mesh(ply_file)
+        mesh.compute_vertex_normals()
+    except Exception as e:
+        traceback.print_exc()
+        log.error(f"Error while reading mesh: {e}")
+        return
     log.debug(f"Processing structure:{ply_file}")
 
     # load cube with no lines (for merging)

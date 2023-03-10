@@ -46,15 +46,17 @@ class Bundle:
         """
         out_name = structure.replace("pdb", "glb")
         tmp_name = tmp_name.replace("pdb", "glb")
+        tmp_save_loc = f"{self.target}/tmp_{tmp_name}"
         save_loc = f"{self.target}/{tmp_name}"
         pipeline = self.pipeline.copy()
         if self.images:
             pipeline = pipeline[:-2] + self.take_screenshot(out_name) + pipeline[-2:]
         if not self.only_images:
-            pipeline[-2] = f"save {save_loc}"
+            pipeline[-2] = f"save {tmp_save_loc}"
         for command in pipeline:
             run(self.session, f"echo {command}")
             run(self.session, command)
+        os.rename(tmp_save_loc, save_loc)
 
     ## display modes
     def change_display_to(self, mode: str):
