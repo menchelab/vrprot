@@ -15,7 +15,8 @@ def main(args=None):
         args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
     processing_files = os.path.join(WD, "processing_files")
-    parser.update_output_dir(processing_files)
+    maps = os.path.join(processing_files, "MAPS")
+    parser.update_output_dir(maps)
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
