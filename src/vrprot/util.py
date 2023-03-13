@@ -10,7 +10,7 @@ import requests
 import trimesh
 import pyglet
 
-from .classes import AlphaFoldVersion, Logger
+from .classes import AlphaFoldVersion, Logger, FileTypes
 from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
