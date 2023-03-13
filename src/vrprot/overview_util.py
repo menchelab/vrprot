@@ -40,7 +40,10 @@ def get_scale(uniprot_ids=[], mode=ColoringModes.cartoons_ss_coloring):
     res = {}
     for id in uniprot_ids:
         if id in overview.index:
-            res[id] = overview.loc[id, mode]
+            try:
+                res[id] = overview.loc[id, mode]
+            except KeyError:
+                return -1
     return res
 
 

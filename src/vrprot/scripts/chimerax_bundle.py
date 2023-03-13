@@ -1,4 +1,5 @@
 # Author: Till Pascal Oblau
+import argparse
 import os
 import sys
 
@@ -23,6 +24,7 @@ class Bundle:
         self.session = session
         self.wd = os.path.abspath(".")
         self.target = target
+        self.images = images
         self.pipeline = ["N/A"]
         self.path = path
         self.only_images = only_images

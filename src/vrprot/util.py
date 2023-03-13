@@ -10,7 +10,8 @@ import requests
 import trimesh
 import pyglet
 
-from .classes import AlphaFoldVersion, Logger, FileTypes
+#
+from .classes import AlphaFoldVersion, FileTypes, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
 
 wd = os.path.dirname(".")  # for final executable
@@ -18,7 +19,6 @@ wd = os.path.dirname(".")  # for final executable
 WD = os.path.abspath(wd)  # for development
 FILE_DIR = os.path.dirname(__file__)
 SCRIPTS = os.path.join(FILE_DIR, "scripts")
-
 log = Logger("util")
 
 
@@ -98,13 +98,12 @@ def search_for_chimerax() -> str:
             drive = drive.replace("\\", "/")
             p = f"{drive}*/ChimeraX*/bin/ChimeraX*-console.exe"
             chimerax = glob.glob(p, recursive=True)
+            log.debug(chimerax)
             if len(chimerax) > 0:
                 chimerax = f'"{chimerax[0]}"'.replace("/", "\\")
                 break
         if len(chimerax) == 0:
             raise ChimeraXException("ChimeraX not found. Is it installed?")
-    if not (os.path.isfile(chimerax) and os.access(chimerax, os.X_OK)):
-        raise ChimeraXException("ChimeraX not found. Is it installed?")
     return chimerax
 
 
@@ -149,8 +148,13 @@ def run_chimerax_coloring_script(
         images_dir = "/".join(images_dir)
     arg = [
         bundle,  # Path to chimeraX bundle.
+        "-s",
         pdb_dir,  # Path to the directory where the .pdb files are stored.
+        "-d",
+        save_location,  # Path to the directory where the .glb files should be saved.
+        "-fn",
         file_string,  # Filename
+        "-m",
         processing,  # Define mode as secondary structure coloring.,  # Path to the directory where the colored .pdb files should be saved.
     ]
     if colors:
@@ -190,15 +194,12 @@ def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
         script_arg (list, strings): all arguments needed by the function used in the chimeraX Python script/bundle (size is dynamic). All Arguments are strings.
     """
     # prepare Arguments for script execution
-    arg = list([script, working_Directory, file_names, mode])
-
-    arg.extend(script_arg)
     if platform.system() == "Linux":
         # for Linux we can use off screen render. This does not work on Windows or macOS
         command = [
             chimerax,
             "--script",
-            ("%s " * len(arg)) % (tuple(arg)),
+            ("%s " * len(args)) % (tuple(args)),
         ]
         if not gui:
             command = [
@@ -283,7 +284,7 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
 
 
 def remove_dirs(directory):
-    """Removes a directory an all underlying subdirectories. WARNING this can lead to los of data!"""
+    """Removes a directory an all underlying subdirectories. WARNING this can lead to loss of data!"""
     if os.path.isdir(directory):
         shutil.rmtree(directory)
 
