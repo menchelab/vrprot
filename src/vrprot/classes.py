@@ -59,6 +59,7 @@ class FileTypes(Enum):
     xyz_low_file = auto()
     xyz_high_file = auto()
     thumbnail_file = auto()
+    #
 
 
 @dataclass
