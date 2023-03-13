@@ -3,7 +3,7 @@ requires = ["hatchling","hatch-requirements-txt"]
 build-backend = "hatchling.build"
 [project]
 name = "vrprot"
-version = "0.a1"
+version = "0.a2"
 authors = [
   { name="Till O.", email="till@menchelab.com" },
   { name="Felix F." },
