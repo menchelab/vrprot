@@ -129,13 +129,18 @@ dmypy.json
 .pyre/
 
 # tmp pdb/glb files
-/processing_files
 .DS_Store
 .vscode
 /static
 *.tar
 overview.csv
-src/src/processing_files/*
+
+/src/processing_files/glbs/**/*
+/src/processing_files/plys/**/*
+/src/processing_files/MAPS/**/*
+/src/processing_files/pdbs/**/*
+
+
 !src/processing_files/pdbs/AF-O06917-F1-model_v4.pdb
 !src/processing_files/pdbs/AF-O06917-F1-model_v4.pdb
 !src/processing_files/pdbs/AF-O06918-F1-model_v4.pdb
@@ -147,3 +152,5 @@ src/src/processing_files/*
 !src/processing_files/pdbs/AF-P54009-F2-model_v4.pdb
 !src/processing_files/pdbs/AF-P54009-F3-model_v4.pdb
 !src/processing_files/pdbs/AF-P54009-F4-model_v4.pdb
+
+

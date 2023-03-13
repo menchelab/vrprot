@@ -15,7 +15,12 @@ def main(args=None):
         args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
     processing_files = os.path.join(WD, "processing_files")
+<<<<<<< HEAD:src/main.py
     parser.update_output_dir(processing_files)
+=======
+    maps = os.path.join(processing_files, "MAPS")
+    parser.update_output_dir(maps)
+>>>>>>> 83ce8311f7c71032f82c6a51fd06051cf3583dbb:pypi_project/src/main.py
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
