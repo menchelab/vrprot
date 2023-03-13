@@ -4,12 +4,11 @@ import os
 import platform
 import shutil
 import subprocess as sp
-import sys
-
+import time
+import re
 import requests
 import trimesh
-from trimesh.exchange import ply
-from trimesh.exchange.export import export_mesh
+import pyglet
 
 from .classes import AlphaFoldVersion, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
@@ -116,6 +115,10 @@ def run_chimerax_coloring_script(
     save_location: str,
     processing: str,
     colors: list or None,
+    images_dir: str = "",
+    images: bool = False,
+    gui: bool = False,
+    only_images: bool = False,
 ) -> None:
     """
     This will use the give ChimeraX installation to process the .pdb files.It will color the secondary structures in the given colors.
@@ -133,23 +136,38 @@ def run_chimerax_coloring_script(
         _, file = ntpath.split(file)
         file_string += f"{file},"
     file_string = file_string[:-1]
+    images_dir = os.path.abspath(images_dir)
     os.makedirs(save_location, exist_ok=True)
+    os.makedirs(images_dir, exist_ok=True)
     if platform.system() == "Windows":
         bundle = bundle
         pdb_dir = pdb_dir.split("\\")
         pdb_dir = "/".join(pdb_dir)
         save_location = save_location.split("\\")
         save_location = "/".join(save_location)
+        images_dir = images_dir.split("\\")
+        images_dir = "/".join(images_dir)
     arg = [
         bundle,  # Path to chimeraX bundle.
         pdb_dir,  # Path to the directory where the .pdb files are stored.
         file_string,  # Filename
         processing,  # Define mode as secondary structure coloring.,  # Path to the directory where the colored .pdb files should be saved.
     ]
-    script_arg = [colors, f"target={save_location}"]
+    if colors:
+        arg.append("-c")
+        arg.append(" ".join(colors))
+
+    if only_images:
+        arg.append("-oi")
+        images = True
+
+    if images:
+        arg.append("-i")
+        arg.append(images_dir)
+        gui = True
     try:
         # Call chimeraX to process the desired object.
-        call_ChimeraX_bundle(chimearx, *arg, script_arg=script_arg)
+        call_ChimeraX_bundle(chimearx, arg, gui)
         # Clean tmp files
     except FileNotFoundError:
         # raise an expection if chimeraX could not be found
@@ -159,14 +177,7 @@ def run_chimerax_coloring_script(
         exit()
 
 
-def call_ChimeraX_bundle(
-    chimerax: str,
-    script: str,
-    working_Directory: str,
-    file_names: str,
-    mode: str,
-    script_arg: list = [],
-) -> None:
+def call_ChimeraX_bundle(chimerax: str, args: list, gui: bool = True) -> None:
     """
     Function to call chimeraX and run chimeraX Python script with the mode applied.
 
@@ -186,20 +197,44 @@ def call_ChimeraX_bundle(
         # for Linux we can use off screen render. This does not work on Windows or macOS
         command = [
             chimerax,
-            "--offscreen",
             "--script",
             ("%s " * len(arg)) % (tuple(arg)),
         ]
+        if not gui:
+            command = [
+                chimerax,
+                "--offscreen",
+                "--script",
+                ("%s " * len(args)) % (tuple(args)),
+            ]
         # command = (
         #     '%s --offscreen --script "' % chimerax
         #     + ("%s " * len(arg)) % (tuple(arg))
         #     + '"'
         # )
+    elif platform.system() == "Windows":
+        chimerax_arguments = [chimerax]
+
+        if not gui:
+            chimerax_arguments.append("--nogui")
+
+        chimerax_arguments.append("--script")
+        command = (
+            "%s " % " ".join(chimerax_arguments)
+            + ' "'
+            + ("%s " * len(args)) % (tuple(args))
+            + '"'
+        )
     else:
         # call chimeraX with commandline in a subprocess
-        command = [chimerax, "--script", ("%s " * len(arg)) % (tuple(arg))]
-        # command = '%s --script "' % chimerax + ("%s " * len(arg)) % (tuple(arg)) + '"'
-    print(command)
+        command = [chimerax, "--script", ("%s " * len(args)) % (tuple(args))]
+        if not gui:
+            command = [
+                chimerax,
+                "--nogui",
+                "--script",
+                ("%s " * len(args)) % (tuple(args)),
+            ]
     try:
         process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
         # wait until chimeraX is finished with processing
@@ -221,35 +256,30 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
     Args:
         glb_file (string): Path to the glb file.
     """
-    save_location, _ = ntpath.split(glb_file)
-    os.makedirs(save_location, exist_ok=True)
-    mesh = trimesh.load(glb_file, force="mesh")
+    try:
+        save_location, _ = ntpath.split(glb_file)
+        os.makedirs(save_location, exist_ok=True)
+        log.debug(f"Loading the glb file: {glb_file}")
+        mesh = trimesh.load(glb_file, force="mesh")
+        trimesh.exchange.export.export_mesh(mesh, ply_file, "ply")
+    except Exception as e:
+        log.error(f"Could not convert {glb_file} to {ply_file}")
+        log.error(e)
+        return False
     if debug:
-        mesh.show()
-    export_mesh(mesh, ply_file, "ply")
-    ## Deprecated
-    # file = ply.export_ply(mesh)
-    # with open(ply_file, "wb+") as f:
-    #     f.write(file)
-    if debug:
-        mesh = trimesh.load(ply_file, force="mesh")
-        mesh.show()
+        try:
+            log.debug("Try to display the glb file.")
+            log.error(f"GLTF file: {glb_file}")
+            log.error(f"{os.stat(glb_file).st_size/1024**1} KB")
+            mesh.show()
+            log.error(f"PLY file: {ply_file}")
+            log.error(f"{os.stat(ply_file).st_size/1024**1} KB")
+            log.debug(f"Try to display the ply file.")
+            mesh = trimesh.load(ply_file, force="mesh")
+            mesh.show()
+        except Exception as er:
+            log.error(f"Could not display GLTF or PLY file, maybe its to small?")
     return True
-
-
-def batch(funcs: list[object], proteins: list[str], batch_size: int = 50) -> None:
-    """Will run the functions listed in funcs in a batched process."""
-    start = 0
-    end = batch_size
-    que = proteins.copy()
-    while len(que) > 0:
-        log.debug(f"Starting Batch form: {start} to {end}")
-        batch_proteins = que[:batch_size]
-        for func in funcs:
-            func(batch_proteins)
-        start = end
-        end += batch_size
-        del que[:batch_size]
 
 
 def remove_dirs(directory):
@@ -258,12 +288,117 @@ def remove_dirs(directory):
         shutil.rmtree(directory)
 
 
-def combine_fractions(directory: str, target: str, chimerax: str):
+def combine_fractions(
+    directory: str,
+    target: str,
+    coloring_mode: str,
+    chimerax: str = None,
+    gui: bool = True,
+    overwrite: bool = False,
+):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
         chimerax = search_for_chimerax()
     script = os.path.join(SCRIPTS, "combine_structures.py")
-    command = [chimerax, "--script", f"{script} {directory} {target} True"]
+    if platform.system() == "Windows":
+        directory = directory.split("\\")
+        directory = "/".join(directory)
+        target = target.split("\\")
+        target = "/".join(target)
+        args = [script, directory, target, "-sp", "-mode", coloring_mode]
+        chimerax_arguments = [chimerax]
+        if not gui:
+            chimerax_arguments.append("--nogui")
+        if overwrite:
+            args.append("-ow")
+        chimerax_arguments.append("--script")
+        command = (
+            "%s " % " ".join(chimerax_arguments)
+            + ' "'
+            + ("%s " * len(args)) % (tuple(args))
+            + '"'
+        )
+    else:
+        command = [chimerax]
+        if not gui:
+            command.append("--nogui")
+        command += [
+            "--script",
+            f"{script} {directory} {target} -sp -mode {coloring_mode}",
+        ]
+        if overwrite:
+            command[-1] += " -ow"
+
     process = sp.Popen(command, stdout=sp.DEVNULL, stdin=sp.PIPE)
     process.wait()
-    print("All multi fraction structures handled.")
+
+
+def free_space(
+    DIRS: dict[FileTypes, str],
+    new: int,
+    space: int = None,
+    proteins: list = None,
+    version: str = None,
+):
+    """Removes as many old files until there is enough space for the new files.
+
+    Args:
+        DIRS (dict): Maps File Types to directories
+        space (int): How mach space is maximal available.
+        new (int): How much space is needed for the new files.
+    """
+    if space is None:
+        return None
+    if space <= 0:
+        return None
+    tmp = {}
+    for ft, _dir in DIRS.items():
+        if ft == "output":
+            continue
+        if os.path.isdir(_dir):
+            files = [os.path.join(_dir, f) for f in os.listdir(_dir)]
+            if space - len(files) < new:
+                files = {f: time.ctime(os.path.getmtime(f)) for f in files}
+                files = sorted(files.items(), key=lambda x: x[1], reverse=True)
+                while space - len(files) < new:
+                    file = files.pop()
+                    if ft not in tmp:
+                        tmp[ft] = []
+                    remove = True
+                    for protein in proteins:
+                        if protein in file[0] and version in file[0]:
+                            remove = False
+                            break
+                    if remove:
+                        tmp[ft].append(file[0])
+    return tmp
+
+
+def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
+    """Removes all cached files."""
+    if space is None or tmp is None:
+        return
+    for ft, files in tmp.items():
+        for file in files:
+            os.remove(file)
+
+
+def find_fractions(directory: str):
+    all_files = glob.glob(f"{directory}/*.pdb")
+    multi_fraction_structures = []
+    while len(all_files) > 1:
+        first_structure = os.path.basename(all_files[0])
+        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
+        structures = []
+        for file in all_files:
+            tmp = os.path.basename(file)
+            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
+            if tmp == first_structure:
+                structures.append(file)
+        if len(structures) == 1:
+            all_files.remove(structures[0])
+            continue
+        multi_fraction_structures.append(first_structure)
+        for file in structures:
+            all_files.remove(file)
+    return multi_fraction_structures

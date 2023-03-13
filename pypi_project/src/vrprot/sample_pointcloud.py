@@ -5,7 +5,9 @@ import os
 
 import open3d as o3d
 
-from .util import FILE_DIR, Logger
+from .classes import Logger
+from .util import FILE_DIR
+import traceback
 
 CUBE_NO_LINES = os.path.join(FILE_DIR, "static", "3d_objects", "Cube_no_lines.ply")
 log = Logger("SamplePointCloud")
@@ -21,8 +23,13 @@ def sample_pcd(
     if cube_no_line is None:
         cube_no_line = CUBE_NO_LINES
     # get protein name & read mesh as .ply format
-    mesh = o3d.io.read_triangle_mesh(ply_file)
-    mesh.compute_vertex_normals()
+    try:
+        mesh = o3d.io.read_triangle_mesh(ply_file)
+        mesh.compute_vertex_normals()
+    except Exception as e:
+        traceback.print_exc()
+        log.error(f"Error while reading mesh: {e}")
+        return
     log.debug(f"Processing structure:{ply_file}")
 
     # load cube with no lines (for merging)
@@ -68,7 +75,11 @@ def sample_pcd(
     if debug:
         o3d.visualization.draw_geometries([mesh_combined])
     # sample points from merged mesh
-    pcd = mesh_combined.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
+    pcd = mesh.sample_points_uniformly(number_of_points=SAMPLE_POINTS)
+    if debug:
+        down = mesh.sample_points_uniformly(number_of_points=5000)
+        down.paint_uniform_color([0, 0, 0])
+        o3d.visualization.draw_geometries([down])
 
     # write point cloud as xyzrgb file (create new folder if ASCII_cloud does not exist)
     # containing xyz values and rgb values (as float [0,1]) for each point
@@ -77,6 +88,7 @@ def sample_pcd(
     o3d.io.write_point_cloud(output, pcd)
     # # Debug to view structure with cube.
     if debug:
+        o3d.visualization.draw_geometries([pcd])
         o3d.visualization.draw_geometries([pcd, cube_no_line, mesh_bounding_box_new])
     return scale
 

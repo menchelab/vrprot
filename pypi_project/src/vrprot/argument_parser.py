@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from .classes import AlphaFoldVersion, ColoringModes, Database
+from logging import _nameToLevel
 
 COLORMODE_CHOICES = ", ".join(list(col.value for col in ColoringModes)[:5])
 
@@ -16,7 +17,6 @@ def argument_parser(exec_name="main.py"):
     fetch_parser.add_argument(
         "proteins",
         type=str,
-        nargs=1,
         help="Proteins to fetch, which are separated by a comma.",
     )
     # Argument parser for processing from a directory in which either a pdb, glb, ply or xyzrgb file is contained and proceeding from this step onward.
@@ -28,7 +28,6 @@ def argument_parser(exec_name="main.py"):
         "source",
         type=str,
         help="Directory containing the files",
-        nargs=1,
         action="store",
     )
     # Argument parser for fetching and processing a list of protein structures
@@ -39,8 +38,17 @@ def argument_parser(exec_name="main.py"):
     list_parser.add_argument(
         "file",
         type=str,
-        nargs=1,
         help="File from which the proteins are extracted from.",
+        action="store",
+    )
+    extract_parser = subparsers.add_parser(
+        "extract",
+        help="Extracts the protein structures from AlphaFold DB bulk download.",
+    )
+    extract_parser.add_argument(
+        "archive",
+        type=str,
+        help="Path to the tar archive",
     )
     # Argument parser for for unpacking tar archived from a bulk download from AlphaFold DB. Furthermore multi fraction protein structures are combined into a single glb file.
     bulk_parser = subparsers.add_parser(
@@ -51,9 +59,9 @@ def argument_parser(exec_name="main.py"):
         "source",
         type=str,
         help="Path to the tar archive",
-        nargs=1,
         action="store",
     )
+
     # Argument parser for clearing the processing_files directory
     clear = subparsers.add_parser(
         "clear",
@@ -105,7 +113,8 @@ def argument_parser(exec_name="main.py"):
         type=str,
         nargs="?",
         choices=[ver.value for ver in AlphaFoldVersion],
-        help="Defines, which version of Alphafold to use.",
+        help="Defines, which version of AlphaFold to use.",
+        default=AlphaFoldVersion.v4.value,
     )
     parser.add_argument(
         "--batch_size",
@@ -114,6 +123,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         metavar="BATCH_SIZE",
         help="Defines the size of the batch which will be processed",
+        default=50,
     )
     parser.add_argument(
         "--keep_pdb",
@@ -122,6 +132,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the PDB files after the GLB file is created. Default is True.",
+        default=True,
     )
     parser.add_argument(
         "--keep_glb",
@@ -130,6 +141,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the GLB files after the PLY file is created. Default is False.",
+        default=False,
     )
     parser.add_argument(
         "--keep_ply",
@@ -138,6 +150,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the PLY files after the ASCII file is created. Default is False.",
+        default=False,
     )
     parser.add_argument(
         "--keep_ascii",
@@ -146,6 +159,7 @@ def argument_parser(exec_name="main.py"):
         nargs="?",
         choices=[True, False],
         help="Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.",
+        default=False,
     )
     parser.add_argument(
         "--chimerax",
@@ -161,13 +175,15 @@ def argument_parser(exec_name="main.py"):
         type=str,
         nargs="?",
         help=f"Defines the coloring mode which will be used to color the structure. Choices: {COLORMODE_CHOICES}... . For a full list, see README.",
+        default=ColoringModes.cartoons_ss_coloring.value,
     )
     parser.add_argument(
         "--img_size",
         "-imgs",
         type=int,
         nargs="?",
-        help=f"Defines the size of the output images. The default is 512 (i.e. 512 x 512).",
+        help=f"Defines the size of the output images.",
+        default=256,
     )
     parser.add_argument(
         "--database",
@@ -177,7 +193,52 @@ def argument_parser(exec_name="main.py"):
         choices=[db.value for db in Database],
         help=f"Defines the database from which the proteins will be fetched.",
     )
-
+    parser.add_argument(
+        "--thumbnails",
+        "-thumb",
+        action="store_true",
+        help="Defines whether to create thumbnails of the structures.",
+        default=False,
+    )
+    parser.add_argument(
+        "--with_gui",
+        "-gui",
+        action="store_true",
+        help="Turn on the gui mode of the ChimeraX processing. This has no effect on Windows systems as the GUI will always be turned on.",
+        default=False,
+    )
+    parser.add_argument(
+        "--only_images",
+        "-oi",
+        action="store_true",
+        help="Only take images of the processed structures.",
+        default=False,
+    )
+    parser.add_argument(
+        "--pcc_preview",
+        "-pcc",
+        action="store_true",
+        help="Presents the point clound color map in a preview window.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-ow",
+        action="store_true",
+        help="Overwrites existing files.",
+    )
+    parser.add_argument(
+        "--log_level",
+        "-ll",
+        type=str,
+        choices=list(_nameToLevel.keys()),
+    )
+    parser.add_argument(
+        "--parallel",
+        "-p",
+        action="store_true",
+        help="Defines whether to use parallel processing.",
+        default=False,
+    )
     if parser.parse_args().mode == None:
         parser.parse_args(["-h"])
         exit()

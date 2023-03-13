@@ -3,23 +3,25 @@ import os
 from dataclasses import dataclass
 from enum import Enum, auto
 
+LOG_LEVEL = logging.DEBUG
+
 
 class Logger:
     """
     Implementation based on https://dotnettutorials.net/lesson/customized-logging-in-python/
     """
 
-    def __init__(self, name, level=logging.DEBUG):
+    def __init__(self, name, level=LOG_LEVEL):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setLevel(level)
+        self.consoleHandler = logging.StreamHandler()
+        self.consoleHandler.setLevel(level)
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s %(levelname)s: %(message)s",
             datefmt="%m/%d/%Y %I:%M:%S%p",
         )
-        consoleHandler.setFormatter(formatter)
-        self.logger.addHandler(consoleHandler)
+        self.consoleHandler.setFormatter(formatter)
+        self.logger.addHandler(self.consoleHandler)
 
     def info(self, message):
         self.logger.info(message)
@@ -32,6 +34,20 @@ class Logger:
 
     def error(self, message):
         self.logger.error(message)
+
+    def set_level(self, level):
+        self.consoleHandler.addFilter(LogFilter(level))
+
+
+class LogFilter:
+    def __init__(self, level):
+        self.__level = level
+
+    def filter(self, logRecord):
+        if self.__level == logging.INFO:
+            return logRecord.levelno in [logging.INFO, logging.WARNING, logging.ERROR]
+        else:
+            return logRecord.levelno >= self.__level
 
 
 class FileTypes(Enum):
@@ -74,6 +90,26 @@ class ProteinStructure:
                 exists = True
             self.existing_files[FileTypes.__members__[file_type]] = exists
 
+    def update_file_existence(self, file_type):
+        if isinstance(file_type, list):
+            for f_type in file_type:
+                self.update_file_existence(f_type)
+            return
+        path = {
+            FileTypes.pdb_file: self.pdb_file,
+            FileTypes.glb_file: self.glb_file,
+            FileTypes.ply_file: self.ply_file,
+            FileTypes.ascii_file: self.ascii_file,
+            FileTypes.rgb_file: self.rgb_file,
+            FileTypes.xyz_low_file: self.xyz_low_file,
+            FileTypes.xyz_high_file: self.xyz_high_file,
+            FileTypes.thumbnail_file: self.thumbnail_file,
+        }
+        if os.path.exists(path[file_type]):
+            self.existing_files[file_type] = True
+        else:
+            self.existing_files[file_type] = False
+
 
 class ColoringModes(Enum):
     cartoons_ss_coloring = "cartoons_ss_coloring"
@@ -83,16 +119,16 @@ class ColoringModes(Enum):
     cartoons_chain_coloring = "cartoons_chain_coloring"
     cartoons_bFactor_coloring = "cartoons_bFactor_coloring"
     cartoons_nucleotide_coloring = "cartoons_nucleotide_coloring"
-    surface_ss_cooloring = "surface_ss_cooloring"
-    surface_rainbow_cooloring = "surface_rainbow_cooloring"
-    surface_heteroatom_cooloring = "surface_heteroatom_cooloring"
-    surface_polymer_cooloring = "surface_polymer_cooloring"
-    surface_chain_cooloring = "surface_chain_cooloring"
+    surface_ss_coloring = "surface_ss_coloring"
+    surface_rainbow_coloring = "surface_rainbow_coloring"
+    surface_heteroatom_coloring = "surface_heteroatom_coloring"
+    surface_polymer_coloring = "surface_polymer_coloring"
+    surface_chain_coloring = "surface_chain_coloring"
     surface_electrostatic_coloring = "surface_electrostatic_coloring"
     surface_hydrophobic_coloring = "surface_hydrophobic_coloring"
     surface_bFactor_coloring = "surface_bFactor_coloring"
     surface_nucleotide_coloring = "surface_nucleotide_coloring"
-    surface_mfpl_coloring = "surface_mfpl_coloring"
+    # surface_mfpl_coloring = "surface_mfpl_coloring"
     stick_ss_coloring = "stick_ss_coloring"
     stick_rainbow_coloring = "stick_rainbow_coloring"
     stick_heteroatom_coloring = "stick_heteroatom_coloring"

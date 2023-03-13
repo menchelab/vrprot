@@ -3,7 +3,6 @@ import os
 import pandas as pd
 
 from .util import WD
-
 from .classes import ColoringModes, ProteinStructure
 
 STATIC_PATH = os.path.join(WD, "static")

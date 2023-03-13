@@ -13,7 +13,7 @@ using ChimeraX and enables them to be analyzed on the [VRNetzer](https://github.
 
 ## USAGE OF THIS PROJECT
 
-The main purpose of this project is to serve as an easy to use pipeline to facilitate the processing of protein structures for presentation on the [VRNetzer](https://github.com/menchelab/VRNetzer). It is mainly used in a the [ProteinStructureFetch Extension](TODO) of the [VRNetzer](https://github.com/menchelab/VRNetzer). For everyone who wants to analyze their own protein structures, with your desired highlighting and coloring, this project is the right place to start. For easy usage of this project, we provide a one file executable which allows to use the program without further installation of python and any dependencies. Nevertheless, a [ChimeraX](https://www.cgl.ucsf.edu/chimerax/download.html) installation is mandatory to use the full potential of this project.
+The main purpose of this project is to serve as an easy to use pipeline to facilitate the processing of protein structures for presentation on the [VRNetzer](https://github.com/menchelab/VRNetzer). It is mainly used in the [ProteinStructureFetch Extension](TODO) of the [VRNetzer](https://github.com/menchelab/VRNetzer) ecosystem. For everyone who wants to analyze their own protein structures, with your desired highlighting and coloring, this project is the right place to start. A [ChimeraX](https://www.cgl.ucsf.edu/chimerax/download.html) installation is mandatory to use the full potential of this project.
 Without ChimeraX this software only provides a fetcher with which you can easily fetch pdb files from the [AlphaFold Database](https://alphafold.ebi.ac.uk/) as well as some converter functions.
 
 ---
@@ -79,7 +79,7 @@ in this directory, for all of them the complete pipeline will be executed. It is
 have a directory containing intermediate states like PLY files.
 For these structures the process will start at the corresponding step.
 
-### Get help
+### Commands overview
 
 To get an overview of the available commands, use the `--help` command.<br>
 `./main.py --help`
@@ -89,98 +89,84 @@ To get an overview of the available commands, use the `--help` command.<br>
 `./main.py [optional arguments] <command> (positional arguments)`<br>
 
 ```
-usage: main.py [-h] [-pdb_file [PDB_DIRECTORY]] [-glb_file [GLB_DIRECTORY]] [-ply_file [PLY_DIRECTORY]] [-cloud [PCD_DIRECTORY]]
-               [-map [MAP_DIRECTORY]] [-alphafold_version [{v1,v2}]] [-batch_size [BATCH_SIZE]] [-keep_pdb [{True,False}]]
-               [-keep_glb [{True,False}]] [-keep_ply [{True,False}]] [-keep_ascii [{True,False}]] [-chimerax [CHIMERAX_EXEC]]
-               [-color_mode [CM]]
-               {fetch,local,list,clear} ...
+usage: main.py [-h] [--pdb_file [PDB_DIRECTORY]] [--glb_file [GLB_DIRECTORY]] [--ply_file [PLY_DIRECTORY]] [--cloud [PCD_DIRECTORY]] [--map [MAP_DIRECTORY]] [--alphafold_version [{v1,v2,v3,v4}]] [--batch_size [BATCH_SIZE]]
+               [--keep_pdb [{True,False}]] [--keep_glb [{True,False}]] [--keep_ply [{True,False}]] [--keep_ascii [{True,False}]] [--chimerax [CHIMERAX_EXEC]] [--color_mode [COLOR_MODE]] [--img_size [IMG_SIZE]]
+               [--database [{alphafold,rcsb}]] [--thumbnails] [--with_gui] [--only_images] [--pcc_preview] [--overwrite] [--log_level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--parallel]
+               {fetch,local,list,extract,bulk,clear} ...
 
 positional arguments:
-  {fetch,local,list,clear}
+  {fetch,local,list,extract,bulk,clear}
                         mode
     fetch               Fetch proteins from the Alphafold database.
     local               Process proteins from files (.pdb, .glb, .ply, .xyzrgb) in a directory.
-    list                Process proteins from a python list of paths to PDB files.
+    list                Process proteins from a file containing one UniProt ID in each line.
+    extract             Extracts the protein structures from AlphaFold DB bulk download.
+    bulk                Process proteins tar archive fetched as bulk download from AlphaFold DB
     clear               Removes the processing_files directory
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -pdb_file [PDB_DIRECTORY], --pdb [PDB_DIRECTORY]
+  --pdb_file [PDB_DIRECTORY], -pdb [PDB_DIRECTORY]
                         Defines, where to save the PDB Files.
-  -glb_file [GLB_DIRECTORY], --glb [GLB_DIRECTORY]
+  --glb_file [GLB_DIRECTORY], -glb [GLB_DIRECTORY]
                         Defines, where to save the GLB Files.
-  -ply_file [PLY_DIRECTORY], --ply [PLY_DIRECTORY]
+  --ply_file [PLY_DIRECTORY], -ply [PLY_DIRECTORY]
                         Defines, where to save the PLY Files.
-  -cloud [PCD_DIRECTORY], --pcd [PCD_DIRECTORY]
+  --cloud [PCD_DIRECTORY], -pcd [PCD_DIRECTORY]
                         Defines, where to save the ASCII point clouds.
-  -map [MAP_DIRECTORY], --m [MAP_DIRECTORY]
+  --map [MAP_DIRECTORY], -m [MAP_DIRECTORY]
                         Defines, where to save the color maps.
-  -alphafold_version [{v1,v2}], --av [{v1,v2}]
-                        Defines, which version of Alphafold to use.
-  -batch_size [BATCH_SIZE], --bs [BATCH_SIZE]
+  --alphafold_version [{v1,v2,v3,v4}], -av [{v1,v2,v3,v4}]
+                        Defines, which version of AlphaFold to use.
+  --batch_size [BATCH_SIZE], -bs [BATCH_SIZE]
                         Defines the size of the batch which will be processed
-  -keep_pdb [{True,False}], -kpdb [{True,False}]
+  --keep_pdb [{True,False}], -kpdb [{True,False}]
                         Define whether to still keep the PDB files after the GLB file is created. Default is True.
-  -keep_glb [{True,False}], -kglb [{True,False}]
+  --keep_glb [{True,False}], -kglb [{True,False}]
                         Define whether to still keep the GLB files after the PLY file is created. Default is False.
-  -keep_ply [{True,False}], -kply [{True,False}]
+  --keep_ply [{True,False}], -kply [{True,False}]
                         Define whether to still keep the PLY files after the ASCII file is created. Default is False.
-  -keep_ascii [{True,False}], -kasc [{True,False}]
+  --keep_ascii [{True,False}], -kasc [{True,False}]
                         Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.
-  -chimerax [CHIMERAX_EXEC], --ch [CHIMERAX_EXEC]
+  --chimerax [CHIMERAX_EXEC], -ch [CHIMERAX_EXEC]
                         Defines, where to find the ChimeraX executable.
-  -color_mode [CM], --cm [CM]
-                        Defines the coloring mode which will be used to color the structure. Choices: cartoons_ss_coloring,
-                        cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring, cartoons_chain_coloring... . For
-                        a full list, see README.
+  --color_mode [COLOR_MODE], -cm [COLOR_MODE]
+                        Defines the coloring mode which will be used to color the structure. Choices: cartoons_ss_coloring, cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring,
+                        cartoons_chain_coloring... . For a full list, see README.
+  --img_size [IMG_SIZE], -imgs [IMG_SIZE]
+                        Defines the size of the output images.
+  --database [{alphafold,rcsb}], -db [{alphafold,rcsb}]
+                        Defines the database from which the proteins will be fetched.
+  --thumbnails, -thumb  Defines whether to create thumbnails of the structures.
+  --with_gui, -gui      Turn on the gui mode of the ChimeraX processing. This has no effect on Windows systems as the GUI will always be turned on.
+  --only_images, -oi    Only take images of the processed structures.
+  --pcc_preview, -pcc   Presents the point clound color map in a preview window.
+  --overwrite, -ow      Overwrites existing files.
+  --log_level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}, -ll {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
+  --parallel, -p        Defines whether to use parallel processing. Default is False.
 ```
 
 ## Larger structures from the AlphaFold DB
 
-All structures fetched directly from the AlphaFold DB have a maximum length of 2700 amino acids.
-Larger structures are contained in the [bulk downloads](https://alphafold.ebi.ac.uk/download) offered by AlphaFold DB.
-To unpack the pdb files from these archives, one can use the extract_alphafold.sh bash script located in "pypi_project/src/vrprot/scripts/".
-This script will extract all pdb files from the archive and save them in the desired directory.
-Use the script as follows:
+All structures fetched directly from the AlphaFold DB consist of only a single fraction with a maximum length of 2700 amino acids. Structures larger than 2700 amino acids are separated in multiple fractions (F1 - Fn). One can use the [bulk downloads](https://alphafold.ebi.ac.uk/download) options offered by AlphaFold DB to download all structures of an organism including structures that are split into multiple fractions.
+It is possible to process the structures directly from these archives by using the `bulk` command:
 
 ```
-  ./extract_alphafold.sh <path_to_archive> <path_to_output_directory>
+./main.py bulk <path_to_archive>
 ```
 
-Structures larger than 2700 amino acids are seperated in multiple fractions (F1 - Fn).
-A python script is provided to combine these fractions into one structure. Use the script with ChimeraX's python interpreter.
-The script can be run either directly from the command line interface:
-
-Linux:
+Alternatively, with the `extract` command, the structures can be extracted from the archive and saved in a directory. The structures can then be processed with the `local` command:
 
 ```
-  chimerax --offscreen --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
+./main.py extract <path_to_archive>
 ```
 
-Mac:
-
-```
-  /Applications/ChimeraX-<version>.app/Contents/MacOS/chimerax --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
-```
-
-Windows:
-
-```
-  #TODO:Try this
-  "C:\Program Files\ChimeraX-X\bin\chimerax.exe" --script '"combine_structures.py" "<path_to_directory>" "<path_to_output_directory>"'
-```
-
-Or inside of ChimeraX executing the following command:
-
-```
-  runscript combine_structures.py <path_to_directory> <path_to_output_directory>
-```
-
-Be aware that these combine structures are glb files and can therefore not be preprocessed with one of the coloring modes.
+In both cases all PDB files contained in the archives are extracted to the default `pdbs` directory.
 
 ## Possible Color Modes
 
 ```
+
 cartoons_ss_coloring
 cartoons_rainbow_coloring
 cartoons_heteroatom_coloring
@@ -218,6 +204,7 @@ sphere_polymer_coloring
 sphere_chain_coloring
 sphere_bFactor_coloring
 sphere_nucleotide_coloring
+
 ```
 
 ---
@@ -240,6 +227,7 @@ to parse a PDB file.
 ## Create a Protein object with:
 
 ```
+
 from pdb_parser import ChimeraXProcessing
 
 pdb_parser = ChimeraXProcessing(protein={"P38606":"P38606"}, keepFiles = <True/False>)
@@ -250,7 +238,9 @@ The protein dictionary contains all the protein structures you want to process.
 You can add a new structure by using:
 
 ```
+
 pdb_parser.add_protein(<UniProtID>)
+
 ```
 
 The keepFiles argument can be used, to tell the program, to not delete PDB and
@@ -259,7 +249,9 @@ GLB file after the processing is accomplished.
 ## Fetch the PDB
 
 ```
+
 pdb_parser.fetch_pdb(protein)
+
 ```
 
 This will download the PDB file from the AlphaFold DB if available. This will be saved in a subfolder called "./pdbs/".
@@ -271,16 +263,23 @@ If the structure is not available on the AlphaFold DB it will try to download it
 You can define the installation Path to your ChimeraX installation by using:
 
 ```
+
 # For Linux (default))
+
 pdb_parser.ChimeraX = "chimerax"
+
 # For Mac
+
 pdb_parser.ChimeraX = "/Applications/<ChimeraX_Version>.app/Contents/MacOS/ChimeraX"
+
 ```
 
 Then you should be able to use:
 
 ```
+
 pdb_parser.color_ss_chimerax(portein,colors=["red", "green", "blue"]) # color argument is optional (Coil = "red", Helix = "green", Strand = "blue")
+
 ```
 
 This will open Chimerax, select the secondary structures and color them as asked.
@@ -294,7 +293,9 @@ ChimeraXProcessing class. You can simply call the function together with the
 UniProtID of the respective protein. You can then use:
 
 ```
+
 pdb_parser.convertGLPToPly(<UniProtID>)
+
 ```
 
 This will convert the GLB file, which has been processed beforehand,
@@ -321,3 +322,7 @@ This script will import the protein mesh (requires uniport ID of protein as inpu
 ## Requires python library PyPNG, numpy
 
 This script opens the ASCII cloud of protein (requires uniport ID of protein as input) from ASCII_clouds foler, reads and stores the xyz coordinates and rgb value for each point in the point cloud in a seperate matrix, which is then converted in to two PNG files of size 1024x1024. The resulting PNG maps are stored in /MAPS/xyz and /MAPS/rgb (will create folder if it does not exist).
+
+```
+
+```
