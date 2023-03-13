@@ -12,7 +12,7 @@ maintainers = [
   { name="Till O.", email="till@menchelab.com" },
 ]
 description = "This package is used to generate your own protein structure images to represent 3D protein structures on the VRNetzer platform."
-readme = "README.md"
+readme = "pypi_README.md"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",

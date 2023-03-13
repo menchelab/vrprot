@@ -1,9 +1,9 @@
 from sys import argv
 
-from src.vrprot.classes import ColoringModes
-from src.vrprot.pointcloud2map_8bit import pcd_to_png
-from src.vrprot.sample_pointcloud import sample_pcd
-from src.vrprot.util import (
+from vrprot.classes import ColoringModes
+from vrprot.pointcloud2map_8bit import pcd_to_png
+from vrprot.sample_pointcloud import sample_pcd
+from vrprot.util import (
     convert_glb_to_ply,
     fetch_pdb_from_alphafold,
     run_chimerax_coloring_script,
