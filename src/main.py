@@ -1,10 +1,12 @@
 #! python3
 
-from src.vrprot.alphafold_db_parser import AlphafoldDBParser
-from src.vrprot.argument_parser import argument_parser
-from src.vrprot.classes import Logger
+from vrprot.alphafold_db_parser import AlphafoldDBParser
+from vrprot.argument_parser import argument_parser
+from vrprot.classes import Logger
+import os
 
 log = Logger("main")
+WD = os.path.dirname(os.path.abspath(__file__))
 
 
 def main(args=None):
@@ -12,6 +14,8 @@ def main(args=None):
     if args is None:
         args = argument_parser().parse_args()
     parser = AlphafoldDBParser()
+    processing_files = os.path.join(WD, "processing_files")
+    parser.update_output_dir(processing_files)
     if args.mode == "clear":
         parser.clear_default_dirs()
         exit()
