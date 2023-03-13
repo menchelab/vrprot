@@ -101,7 +101,7 @@ class AlphafoldDBParser:
         self.GLB_DIR = os.path.join(self.WD, "processing_files", "glbs")
         self.ASCII_DIR = os.path.join(self.WD, "processing_files", "ASCII_clouds")
         self.OUTPUT_DIR = os.path.join(self.WD, "processing_files", "MAPS")
-        self.IMAGES_DIR = os.path.join(self.WD, "processing_files","thumbnails")
+        self.IMAGES_DIR = os.path.join(self.WD, "processing_files", "thumbnails")
         self.combine_thread = None
 
     def init_dirs(self, subs=True) -> None:
