@@ -9,7 +9,7 @@ import re
 import requests
 import trimesh
 import pyglet
-
+from tqdm import tqdm
 from .classes import AlphaFoldVersion, FileTypes, Logger
 from .exceptions import ChimeraXException, StructureNotFoundError
 
@@ -266,19 +266,6 @@ def convert_glb_to_ply(glb_file: str, ply_file: str, debug: bool = False) -> Non
         log.error(f"Could not convert {glb_file} to {ply_file}")
         log.error(e)
         return False
-    if debug:
-        try:
-            log.debug("Try to display the glb file.")
-            log.error(f"GLTF file: {glb_file}")
-            log.error(f"{os.stat(glb_file).st_size/1024**1} KB")
-            mesh.show()
-            log.error(f"PLY file: {ply_file}")
-            log.error(f"{os.stat(ply_file).st_size/1024**1} KB")
-            log.debug(f"Try to display the ply file.")
-            mesh = trimesh.load(ply_file, force="mesh")
-            mesh.show()
-        except Exception as er:
-            log.error(f"Could not display GLTF or PLY file, maybe its to small?")
     return True
 
 
@@ -295,17 +282,28 @@ def combine_fractions(
     chimerax: str = None,
     gui: bool = True,
     overwrite: bool = False,
+    proteins: list = None,
 ):
     """Combines multi fraction protein structure to a single structure and exports it as glb file."""
     if chimerax is None:
         chimerax = search_for_chimerax()
     script = os.path.join(SCRIPTS, "combine_structures.py")
+    proteins = ",".join(proteins)
     if platform.system() == "Windows":
         directory = directory.split("\\")
         directory = "/".join(directory)
         target = target.split("\\")
         target = "/".join(target)
-        args = [script, directory, target, "-sp", "-mode", coloring_mode]
+        args = [
+            script,
+            directory,
+            target,
+            "-sp",
+            "-mode",
+            coloring_mode,
+            "-p",
+            proteins,
+        ]
         chimerax_arguments = [chimerax]
         if not gui:
             chimerax_arguments.append("--nogui")
@@ -324,7 +322,7 @@ def combine_fractions(
             command.append("--nogui")
         command += [
             "--script",
-            f"{script} {directory} {target} -sp -mode {coloring_mode}",
+            f"{script} {directory} {target} -sp -mode {coloring_mode} -p {proteins}",
         ]
         if overwrite:
             command[-1] += " -ow"
@@ -386,19 +384,24 @@ def remove_cached_files(tmp: dict[FileTypes, str], space: int, new: int):
 def find_fractions(directory: str):
     all_files = glob.glob(f"{directory}/*.pdb")
     multi_fraction_structures = []
-    while len(all_files) > 1:
-        first_structure = os.path.basename(all_files[0])
-        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
-        structures = []
-        for file in all_files:
-            tmp = os.path.basename(file)
-            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
-            if tmp == first_structure:
-                structures.append(file)
-        if len(structures) == 1:
-            all_files.remove(structures[0])
-            continue
-        multi_fraction_structures.append(first_structure)
-        for file in structures:
-            all_files.remove(file)
+    log.info("Searching for multi fraction structures.")
+    max_len = len(all_files)
+    with tqdm(range(max_len)) as progress_bar:
+        while len(all_files) > 1:
+            file = all_files.pop()
+            progress = (max_len - len(all_files)) - progress_bar.n
+            progress_bar.update(progress)
+
+            first_structure = os.path.basename(file)
+            protein = re.findall(r"AF-(\w+)-", first_structure)[0]
+            pattern = re.compile(protein)
+            fractions = [f for f in all_files if pattern.search(f)]
+            if len(fractions) <= 1:
+                continue
+
+            multi_fraction_structures.append(protein)
+            for fraction in fractions:
+                if fraction in all_files:
+                    all_files.remove(fraction)
+        progress_bar.update(1)
     return multi_fraction_structures

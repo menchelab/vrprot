@@ -36,7 +36,7 @@ overview.csv
 /src/processing_files/plys/**/*
 /src/processing_files/MAPS/**/*
 /src/processing_files/pdbs/**/*
-
+src/processing_files/ASCII_clouds/**/*
 
 !src/processing_files/pdbs/AF-O06917-F1-model_v4.pdb
 !src/processing_files/pdbs/AF-O06917-F1-model_v4.pdb
@@ -49,5 +49,5 @@ overview.csv
 !src/processing_files/pdbs/AF-P54009-F2-model_v4.pdb
 !src/processing_files/pdbs/AF-P54009-F3-model_v4.pdb
 !src/processing_files/pdbs/AF-P54009-F4-model_v4.pdb
-
-
+src/static/*
+*.zip

@@ -33,6 +33,8 @@ def main(args=None):
         parser.execute_from_bulk(args.source)
     if args.mode == "extract":
         parser.extract_archive(args.archive)
+    if args.mode == "combine":
+        parser.execute_apply_to_multifractions()
 
 
 if __name__ == "__main__":

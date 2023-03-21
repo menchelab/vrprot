@@ -76,6 +76,7 @@ class ProteinStructure:
     thumbnail_file: str = ""
     existing_files: dict = None
     scale: float = 1.0
+    mf: bool = False
 
     def __post_init__(self):
         self.update_existence()
@@ -92,6 +93,17 @@ class ProteinStructure:
             if os.path.exists(file):
                 exists = True
             self.existing_files[FileTypes.__members__[file_type]] = exists
+
+    def set_file(self, file):
+        ext = file.split(".")[-1]
+        if ext == "pdb":
+            self.pdb_file = file
+        elif ext == "glb":
+            self.glb_file = file
+        elif ext == "ply":
+            self.ply_file = file
+        elif ext == "xyzrgb":
+            self.ascii_file = file
 
     def update_file_existence(self, file_type):
         if isinstance(file_type, list):
