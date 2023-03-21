@@ -51,3 +51,4 @@ src/processing_files/ASCII_clouds/**/*
 !src/processing_files/pdbs/AF-P54009-F4-model_v4.pdb
 src/static/*
 *.zip
+dist/*

@@ -22,11 +22,11 @@ def main(args=None):
         exit()
     parser.set_all_arguments(args)
     if args.mode == "fetch":
-        parser.execute_fetch(args.proteins[0])
+        parser.execute_fetch(args.proteins)
     if args.mode == "local":
         parser.execute_local(args.source)
     if args.mode == "list":
-        with open(args.file[0]) as f:
+        with open(args.file) as f:
             proteins = f.read().splitlines()
         parser.execute_from_object(proteins)
     if args.mode == "bulk":
