@@ -39,8 +39,6 @@ Install the package e.g. in a virtual environment:
 
 - under mac you might have to install the following packages<br>
   `brew install libomp`
-- install alphafold_to_vrnetzer<br>
-  `TODO`
 
 ### Process a single structure
 

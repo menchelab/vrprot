@@ -447,7 +447,7 @@ class AlphafoldDBParser:
         Writes the scale of the protein to the overview file. This file is used to keep track of the scale of each protein structure.
         """
         # Write the scales you received all at once when parallelized
-        if isinstance(protein,str):
+        if isinstance(protein, str):
             protein = [protein]
         structures = [self.structures[p] for p in protein]
         ov_util.write_scale(
@@ -596,18 +596,19 @@ class AlphafoldDBParser:
 
     def wait_for_subprocesses(self):
         if self.chimeraX_thread and self.chimeraX_thread.is_alive():
-            print("trying to join chimerax Thread")
+            self.log.debug("Joining ChimeraX thread ...")
             self.chimeraX_thread.join()
-            print("thread joined")
+            self.log.debug("ChimeraX thread joined.")
         if self.combine_thread and self.combine_thread.is_alive():
-            print("trying to join combine Thread")
+            self.log.debug("Joining Combine thread ...")
             self.combine_thread.join()
-            print("thread joined")
+            self.log.debug("Combine thread joined.")
 
     def fetch_pipeline(self, proteins: set[str], **kwargs) -> None:
         """
         Fetch of the structure from the alphafold db.
         """
+        print(proteins)
         if isinstance(proteins, str):
             proteins = set([proteins])
         if isinstance(proteins, list):
@@ -725,7 +726,9 @@ class AlphafoldDBParser:
 
     def execute_fetch(self, proteins: str) -> None:
         """Uses a list of proteins to fetch the PDB files from the alphafold db. This PDB files will then be used to generated the color maps."""
+        print(proteins)
         proteins = proteins.split(",")
+        print(proteins)
         self.log.debug(f"Proteins to fetch from Alphafold:{proteins}")
         self.fetch_pipeline(proteins)
 
