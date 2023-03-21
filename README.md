@@ -89,19 +89,25 @@ To get an overview of the available commands, use the `--help` command.<br>
 `./main.py [optional arguments] <command> (positional arguments)`<br>
 
 ```
-usage: main.py [-h] [--pdb_file [PDB_DIRECTORY]] [--glb_file [GLB_DIRECTORY]] [--ply_file [PLY_DIRECTORY]] [--cloud [PCD_DIRECTORY]] [--map [MAP_DIRECTORY]] [--alphafold_version [{v1,v2,v3,v4}]] [--batch_size [BATCH_SIZE]]
-               [--keep_pdb [{True,False}]] [--keep_glb [{True,False}]] [--keep_ply [{True,False}]] [--keep_ascii [{True,False}]] [--chimerax [CHIMERAX_EXEC]] [--color_mode [COLOR_MODE]] [--img_size [IMG_SIZE]]
-               [--database [{alphafold,rcsb}]] [--thumbnails] [--with_gui] [--only_images] [--pcc_preview] [--overwrite] [--log_level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--parallel]
-               {fetch,local,list,extract,bulk,clear} ...
+usage: main.py [-h] [--pdb_file [PDB_DIRECTORY]] [--glb_file [GLB_DIRECTORY]] [--ply_file [PLY_DIRECTORY]]
+               [--cloud [PCD_DIRECTORY]] [--map [MAP_DIRECTORY]] [--alphafold_version [{v1,v2,v3,v4}]]
+               [--batch_size [BATCH_SIZE]] [--keep_pdb [{True,False}]] [--keep_glb [{True,False}]] [--keep_ply [{True,False}]]
+               [--keep_ascii [{True,False}]] [--chimerax [CHIMERAX_EXEC]] [--color_mode [COLOR_MODE]] [--img_size [IMG_SIZE]]
+               [--database [{alphafold,rcsb}]] [--thumbnails] [--with_gui] [--only_images] [--pcc_preview] [--overwrite]
+               [--log_level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}] [--parallel] [--process_multi_fraction]
+               [--scan_for_multifractions]
+               {fetch,local,list,extract,bulk,combine,clear} ...
 
 positional arguments:
-  {fetch,local,list,extract,bulk,clear}
+  {fetch,local,list,extract,bulk,combine,clear}
                         mode
     fetch               Fetch proteins from the Alphafold database.
     local               Process proteins from files (.pdb, .glb, .ply, .xyzrgb) in a directory.
     list                Process proteins from a file containing one UniProt ID in each line.
     extract             Extracts the protein structures from AlphaFold DB bulk download.
     bulk                Process proteins tar archive fetched as bulk download from AlphaFold DB
+    combine             Combine multi fraction protein structures into a single glb file. with ChimeraX and the desired coloring
+                        mode.
     clear               Removes the processing_files directory
 
 options:
@@ -127,23 +133,30 @@ options:
   --keep_ply [{True,False}], -kply [{True,False}]
                         Define whether to still keep the PLY files after the ASCII file is created. Default is False.
   --keep_ascii [{True,False}], -kasc [{True,False}]
-                        Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is False.
+                        Define whether to still keep the ASCII Point CLoud files after the color maps are generated. Default is
+                        False.
   --chimerax [CHIMERAX_EXEC], -ch [CHIMERAX_EXEC]
                         Defines, where to find the ChimeraX executable.
   --color_mode [COLOR_MODE], -cm [COLOR_MODE]
-                        Defines the coloring mode which will be used to color the structure. Choices: cartoons_ss_coloring, cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring,
+                        Defines the coloring mode which will be used to color the structure. Choices: cartoons_ss_coloring,
+                        cartoons_rainbow_coloring, cartoons_heteroatom_coloring, cartoons_polymer_coloring,
                         cartoons_chain_coloring... . For a full list, see README.
   --img_size [IMG_SIZE], -imgs [IMG_SIZE]
                         Defines the size of the output images.
   --database [{alphafold,rcsb}], -db [{alphafold,rcsb}]
                         Defines the database from which the proteins will be fetched.
   --thumbnails, -thumb  Defines whether to create thumbnails of the structures.
-  --with_gui, -gui      Turn on the gui mode of the ChimeraX processing. This has no effect on Windows systems as the GUI will always be turned on.
+  --with_gui, -gui      Turn on the gui mode of the ChimeraX processing. This has no effect on Windows systems as the GUI will
+                        always be turned on.
   --only_images, -oi    Only take images of the processed structures.
   --pcc_preview, -pcc   Presents the point clound color map in a preview window.
   --overwrite, -ow      Overwrites existing files.
   --log_level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}, -ll {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}
-  --parallel, -p        Defines whether to use parallel processing. Default is False.
+  --parallel, -p        Defines whether to use parallel processing.
+  --process_multi_fraction, -pmf
+                        Defines whether to also process multi fraction structures.
+  --scan_for_multifractions, -sfm
+                        Defines whether to scan for multi fraction structures.
 ```
 
 ## Larger structures from the AlphaFold DB
@@ -162,6 +175,13 @@ Alternatively, with the `extract` command, the structures can be extracted from 
 ```
 
 In both cases all PDB files contained in the archives are extracted to the default `pdbs` directory.
+From there, also the `local` command can be used to process the structures:
+
+```
+./main.py local <path_to_pdbs_dircetory>
+```
+
+This whole process should be executed with caution as the processing time can be very long and the memory consumption can be very high. In extreme cases the program might shut down especially when treating larger structures with more than 50 fractions. Especially complex processing modes like `surface_electrostatic_coloring` can take a very long time to process.
 
 ## Possible Color Modes
 

@@ -8,11 +8,13 @@ from .classes import ColoringModes, ProteinStructure
 STATIC_PATH = os.path.join(WD, "static")
 CSV_PATH = os.path.join(STATIC_PATH, "csv")
 DEFAULT_OVERVIEW_FILE = os.path.join(WD, "static", "csv", "overview.csv")
-COLUMNS = ["uniprot_id", "pdb_file", "multi_structure", "parts"]
+COLUMNS = ["uniprot_id", "multi_structure"]
 for mode in ColoringModes.__dict__.values():
     if isinstance(mode, str):
         if mode.endswith("coloring"):
             COLUMNS.append(mode)
+UNIPROT_ID = "uniprot_id"
+MULTI_STRUCTURE = "multi_structure"
 
 
 def init_overview(columns=None) -> pd.DataFrame:
@@ -70,10 +72,18 @@ def get_overview(file=None) -> pd.DataFrame:
     return overview
 
 
-def write_scale(uniprotid, scale, pdb_file, processing, overview):
+def write_scale(structures: list[ProteinStructure], processing, overview):
     overview = get_overview(overview)
-    overview.loc[uniprotid, "pdb_file"] = pdb_file
-    overview.loc[uniprotid, processing] = scale
+    for structure in structures:
+        overview.loc[structure.uniprot_id, processing] = structure.scale
+    write_overview(overview)
+
+
+def write_property(structures: list[ProteinStructure], property, key, overview):
+
+    overview = get_overview(overview)
+    for structure in structures:
+        overview.loc[structure.uniprot_id, property] = structure.__dict__[key]
     write_overview(overview)
 
 
@@ -92,11 +102,7 @@ def add_protein_structure_from_scales(
     for some_file in os.listdir(single_pdb_dir):
         if some_file.endswith(".pdb"):
             uniprot_id = some_file.split("-")[1]
-            overview.loc[uniprot_id, "pdb_file"] = os.path.join(
-                single_pdb_dir, some_file
-            )
             overview.loc[uniprot_id, "multi_structure"] = False
-            overview.loc[uniprot_id, "parts"] = "NA"
     if multi_pdb_dir is not None:
         structures = os.listdir(multi_pdb_dir)
         structures = [struc for struc in structures if struc.endswith(".pdb")]
@@ -107,11 +113,7 @@ def add_protein_structure_from_scales(
             for part in parts:
                 structures.remove(part)
             parts = [os.path.abspath(part) for part in parts]
-            overview.loc[uniprot_id, "pdb_file"] = os.path.join(
-                multi_pdb_dir, structure
-            )
             overview.loc[uniprot_id, "multi_structure"] = True
-            overview.loc[uniprot_id, "parts"] = ";".join(parts)
             print(len(structures))
 
     for uniprot, row in scales.iterrows():
@@ -119,10 +121,14 @@ def add_protein_structure_from_scales(
     write_overview(overview, output)
 
 
+def get_all_multifractions(overview: str) -> list[str]:
+    overview = get_overview(overview)
+    return list(overview[overview["multi_structure"] == True].index)
+
+
 def main(proteins: list[ProteinStructure], mode: str):
     overview = get_overview()
     for protein in proteins:
-        overview.loc[protein.uniprot_id, "pdb_file"] = protein.pdb_file
         overview.loc[protein.uniprot_id, mode] = protein.scale
     write_overview(overview)
 

@@ -79,6 +79,8 @@ class AlphafoldDBParser:
     multi_fraction = []
     parallel: bool = False
     pool_initialized: bool = False
+    only_singletons: bool = True
+    scan_for_multifractions: bool = False
 
     def update_output_dir(self, output_dir):
         """Updates the output directory of resulting images.
@@ -100,9 +102,12 @@ class AlphafoldDBParser:
         self.PLY_DIR = os.path.join(self.WD, "processing_files", "plys")
         self.GLB_DIR = os.path.join(self.WD, "processing_files", "glbs")
         self.ASCII_DIR = os.path.join(self.WD, "processing_files", "ASCII_clouds")
-        self.OUTPUT_DIR = os.path.join(self.WD, "processing_files", "MAPS")
-        self.IMAGES_DIR = os.path.join(self.WD,"processing_files", "thumbnails")
+        self.OUTPUT_DIR = os.path.join(
+            self.WD, "processing_files", self.processing, "MAPS"
+        )
+        self.IMAGES_DIR = os.path.join(self.OUTPUT_DIR, "thumbnails")
         self.combine_thread = None
+        self.chimeraX_thread = None
 
     def init_dirs(self, subs=True) -> None:
         """
@@ -116,7 +121,7 @@ class AlphafoldDBParser:
             self.OUTPUT_DIR, os.path.join("xyz", "high")
         )
         self.IMAGES_DIR = os.path.join(self.OUTPUT_DIR, "thumbnails")
-        directories = [var for var in self.__dict__.keys() if "_DIR" in var]
+        directories = [var for var in self.__dict__.keys() if var.endswith("_DIR")]
         if not subs:
             for var in directories:
                 if "RGB" in var or "XYZ" in var:
@@ -145,7 +150,12 @@ class AlphafoldDBParser:
         """
         return f"AF-{protein}-F1-model_{self.alphafold_ver}"
 
-    def init_structures_dict(self, proteins: set[str]) -> dict[dict[str or dict[str]]]:
+    def init_structures_dict(
+        self, proteins: set[str], ignore=None
+    ) -> dict[dict[str or dict[str]]]:
+        if ignore:
+            proteins = [protein for protein in proteins if protein not in ignore]
+        proteins = set(proteins)
         for protein in proteins:
             # Catch cases in which the filename is already given
             file_name = self.get_filename(protein)
@@ -170,6 +180,7 @@ class AlphafoldDBParser:
             )
             structure = ProteinStructure(protein, file_name, *files)
             self.structures[protein] = structure
+        self.write_mf_property(proteins)
         return self.structures
 
     def fetch_pdb(self, proteins: list[str], on_demand: bool = True) -> None:
@@ -308,6 +319,9 @@ class AlphafoldDBParser:
         for protein in proteins:
             structure = self.structures[protein]
             structure.update_file_existence([FT.glb_file, FT.ply_file, FT.ascii_file])
+            if not structure.existing_files[FT.glb_file]:
+                self.log.debug(f"GLB file {structure.glb_file} does not exist.")
+                continue
             if (
                 (
                     not structure.existing_files[FT.ply_file]
@@ -337,7 +351,9 @@ class AlphafoldDBParser:
                     f"Structure {protein} is already processed and overwrite is not allowed."
                 )
 
-    def sample_pcd(self, proteins: list[str], async_call=False) -> None:
+    def sample_pcd(
+        self, proteins: list[str], async_call=False, overview_lock=None
+    ) -> None:
         """
         Samples the point cloud form the ply files.
         As default, the source ply file is removed afterwards.
@@ -360,6 +376,7 @@ class AlphafoldDBParser:
                 if structure.existing_files[FT.ascii_file]:
                     if not self.keep_tmp[FT.ply_file]:
                         os.remove(structure.ply_file)
+                    structure.scale = scale
                     structure.update_file_existence(FT.ply_file)
                     self.structures[protein] = structure
                     if not async_call:
@@ -367,6 +384,12 @@ class AlphafoldDBParser:
                         self.log.debug(
                             f"Sampled pcd to {structure.ascii_file} and wrote scale of {scale} to file {self.overview_file}"
                         )
+                    else:
+                        with overview_lock:
+                            self.write_scale(protein)
+                            self.log.debug(
+                                f"Sampled pcd to {structure.ascii_file} and wrote scale of {scale} to file {self.overview_file}"
+                            )
                 else:
                     self.log.warning(
                         f"Could not sample {structure.ply_file} to {structure.ascii_file}"
@@ -424,17 +447,31 @@ class AlphafoldDBParser:
         Writes the scale of the protein to the overview file. This file is used to keep track of the scale of each protein structure.
         """
         # Write the scales you received all at once when parallelized
-        structure = self.structures[protein]
+        if isinstance(protein,str):
+            protein = [protein]
+        structures = [self.structures[p] for p in protein]
         ov_util.write_scale(
-            structure.uniprot_id,
-            structure.scale,
-            structure.pdb_file,
+            structures,
             self.processing,
             self.overview_file,
         )
 
+    def write_mf_property(self, protein) -> None:
+        """
+        Writes to the overview file whether the protein structure is separated in multiple fragments.
+        """
+        if isinstance(protein, str):
+            protein = [protein]
+        structures = [self.structures[p] for p in protein]
+        ov_util.write_property(
+            structures,
+            "multi_structure",
+            "mf",
+            self.overview_file,
+        )
+
     def set_version_from_filenames(self) -> None:
-        """Iterates over all Directories and searches for files, which have Alphafold version number. If one is found, set the Parser to this version. All files are treated with this version."""
+        """Iterates over all Directories and searches for files, which have AlphaFold version number. If one is found, set the Parser to this version. All files are treated with this version."""
         for dir in self.DIRS.values():
             for file in os.listdir(dir):
                 for version in list(AlphaFoldVersion):
@@ -457,24 +494,17 @@ class AlphafoldDBParser:
         """
         Processes proteins from a directory. In the source directory, the program will search for each of the available file types. Based on this, the class directories are initialized. The program will then start at the corresponding step for each structure.
         """
-
-        self.multi_fraction.append(util.find_fractions(source))
-        self.combine_thread = threading.Thread(
-            util.combine_fractions(
-                self.PDB_DIR, self.GLB_DIR, self.processing, gui=self.gui
-            )
-        )
-        self.combine_thread.start()
-
+        self.combine_multifractions(source)
         file_list = os.listdir(source)
         files = []
         for file in file_list:
             self.check_dirs(file, source)
             if file.endswith((".pdb", ".glb", ".ply", ".xyzrgb", ".png", ".bmp")):
-                files.append(file)
+                path = os.path.join(source, file)
+                files.append(path)
         del file_list
         self.alphafold_ver = (
-            files[0].split("/")[-1].split("_")[1]
+            os.path.basename(files[0]).split("/")[-1].split("_")[1]
         )  # extract the Alphafold version from the first file
         self.alphafold_ver = self.alphafold_ver[: self.alphafold_ver.find(".")]
         proteins = set()
@@ -482,7 +512,16 @@ class AlphafoldDBParser:
             file_name = file.split("/")[-1]
             proteins.add(file_name.split("-")[1])
 
-        self.init_structures_dict(proteins)
+        self.init_structures_dict(proteins, self.multi_fraction)
+        for file in files:
+            protein = file.split("/")[-1].split("-")[1]
+            structure = self.structures[protein]
+            if protein in self.multi_fraction:
+                structure.mf = True
+            structure.set_file(file)
+            structure.update_existence()
+            self.structures[protein] = structure
+        self.log.info("Starting the batched processing of all proteins...")
         self.batch([self.pdb_pipeline], proteins, self.batch_size, on_demand=False)
 
     def pdb_pipeline(self, proteins: list[str], **kwargs) -> None:
@@ -491,16 +530,18 @@ class AlphafoldDBParser:
         For each structure, the PDB file we be processed in chimerax and exported as GLB file. This GLB file will be converted into a PLY file.
         The PLY file is used to sample the point cloud which will be saved as an ASCII point cloud. This ASCII point cloud will then be used to generate the color maps (rgb, xyz_low and xyz_high).
         """
-        tmp = ", ".join(proteins)
         proteins = self.filter_already_processed(proteins)
         proteins = [
             p for p in proteins if p not in self.not_fetched
         ]  # If they are not fetched, You wont be able to process them
         not_multi_fraction = [
-            proteins for proteins in proteins if proteins not in self.multi_fraction
+            proteins for proteins in proteins if self.structures[proteins].mf == False
         ]
+        if self.only_singletons:
+            proteins = not_multi_fraction
 
-        if len(not_multi_fraction) == 0:
+        if len(not_multi_fraction) == 0 and len(proteins) == 0:
+            tmp = ", ".join(proteins)
             self.log.info(
                 f"All structures of this batch: {tmp} are already processed. Skipping this batch."
             )
@@ -513,46 +554,55 @@ class AlphafoldDBParser:
                     os.remove(structure.glb_file)
                     structure.update_file_existence([FT.glb_file])
                     self.structures[protein] = structure
-
         try:
-            chimeraX_thread = threading.Thread(
+            self.chimeraX_thread = threading.Thread(
                 target=self.chimerax_process,
                 args=(
                     not_multi_fraction,
                     self.processing,
                 ),
             )
-            chimeraX_thread.start()
         except Exception as e:
             traceback.print_exc(e)
             raise exceptions.ChimeraXException
 
+        if len(not_multi_fraction) > 0:
+            self.log.debug(
+                "Some structures are not multi fraction. Starting ChimeraX..."
+            )
+            self.chimeraX_thread.start()
+
         if self.only_images:
-            chimeraX_thread.join()
-            if self.combine_thread:
-                self.combine_thread.join()
+            self.wait_for_subprocesses()
             return
 
         if self.parallel and len(proteins) > 1 and os.cpu_count() > 2:
             self.fill_queue(proteins)
-            if chimeraX_thread.is_alive():
-                chimeraX_thread.join()
-            if self.combine_thread:
-                self.combine_thread.join()
+            self.wait_for_subprocesses()
             return
 
-        chimeraX_thread.join()
-        if self.combine_thread:
-            self.combine_thread.join()
+        # If the program is not parallelized, run the pipeline sequentially
+        self.wait_for_subprocesses()
+
         for protein in proteins:
             self.structures[protein].update_file_existence([FT.glb_file])
-        # If the program is not parallelized, run the pipeline sequentially
+
         self.log.debug("Converting GLBs to PLYs...")
         self.convert_glbs(proteins)
         self.log.debug("Sampling PointClouds...")
         self.sample_pcd(proteins)
         self.log.debug("Generating Color Maps...")
         self.gen_maps(proteins)
+
+    def wait_for_subprocesses(self):
+        if self.chimeraX_thread and self.chimeraX_thread.is_alive():
+            print("trying to join chimerax Thread")
+            self.chimeraX_thread.join()
+            print("thread joined")
+        if self.combine_thread and self.combine_thread.is_alive():
+            print("trying to join combine Thread")
+            self.combine_thread.join()
+            print("thread joined")
 
     def fetch_pipeline(self, proteins: set[str], **kwargs) -> None:
         """
@@ -662,7 +712,8 @@ class AlphafoldDBParser:
 
     def set_coloring_mode(self, args: Namespace) -> None:
         if args.color_mode is not None:
-            self.processing = args.color_mode
+            if args.color_mode in ColoringModes.__members__.keys():
+                self.processing = args.color_mode
 
     def set_img_size(self, args: Namespace) -> None:
         if args.img_size is not None:
@@ -687,8 +738,67 @@ class AlphafoldDBParser:
         AF-<Uniprot ID>-F1-model-<v1/v2>.[pdb/glb/ply/xyzrgb]"""
         self.proteins_from_dir(source)
 
+    def execute_apply_to_multifractions(self):
+        """Will combine all multifractions into a single 3D object with the desired processing mode applied to it. Will take the PDB directory as source."""
+        self.only_singletons = False
+        self.combine_multifractions(self.PDB_DIR)
+
+    def combine_multifractions(self, source):
+        if self.scan_for_multifractions:
+            self.multi_fraction = []
+            self.multi_fraction += util.find_fractions(source)
+        elif os.path.isfile(self.overview_file):
+            self.multi_fraction = ov_util.get_all_multifractions(self.overview_file)
+        else:
+            self.scan_for_multifractions = True
+            return self.combine_multifractions(source)
+
+        self.init_structures_dict(self.multi_fraction)
+        self.multi_fraction = self.filter_already_processed(self.multi_fraction)
+        for protein in self.multi_fraction:
+            structure = self.structures[protein]
+            glb_file = structure.glb_file
+            file_name = os.path.basename(glb_file)
+            path = os.path.dirname(glb_file)
+            file_name = f"mf_{file_name}"
+            glb_file = os.path.join(path, file_name)
+            structure.glb_file = glb_file
+            structure.update_file_existence(FT.glb_file)
+            structure.mf = True
+            self.structures[protein] = structure
+        self.write_mf_property(self.multi_fraction)
+        if self.only_singletons:
+            return
+        all_processed = True
+        if self.overwrite:
+            all_processed = False
+        else:
+            for fraction in self.multi_fraction:
+                if not self.structures[fraction].existing_files[FT.glb_file]:
+                    all_processed = False
+                    break
+        if not all_processed:
+            self.batch(
+                [self.combine_pipeline, self.pdb_pipeline],
+                proteins=self.multi_fraction,
+                batch_size=5,
+            )
+
+    def combine_pipeline(self, proteins):
+        self.combine_thread = threading.Thread(
+            util.combine_fractions(
+                self.PDB_DIR,
+                self.GLB_DIR,
+                self.processing,
+                gui=self.gui,
+                proteins=proteins,
+            )
+        )
+        self.combine_thread.start()
+
     def execute_from_bulk(self, source: str):
         """Will extract all PDB files from a tar archive downloaded from AlphafoldDB to Process all structures within it with the desired processing mode. Furthermore, multi fraction structures are combined to one large structure. These structures are not handled with the desired processing mode."""
+        self.scan_for_multifractions = True
         self.extract_archive(source)
         self.proteins_from_dir(self.PDB_DIR)
 
@@ -760,6 +870,14 @@ class AlphafoldDBParser:
         if args.parallel is not None:
             self.parallel = args.parallel
 
+    def set_singletons(self, args: Namespace):
+        if args.process_multi_fraction is not None:
+            self.only_singletons = not args.process_multi_fraction
+
+    def set_scan_for_multifractions(self, args: Namespace):
+        if args.scan_for_multifractions is not None:
+            self.scan_for_multifractions = args.scan_for_multifractions
+
     def set_all_arguments(self, args: Namespace):
         for func in [
             self.set_batch_size,
@@ -777,6 +895,8 @@ class AlphafoldDBParser:
             self.set_overwrite,
             self.set_console_log_level,
             self.set_parallel,
+            self.set_singletons,
+            self.set_scan_for_multifractions,
         ]:
             func(args)
 
@@ -798,6 +918,7 @@ class AlphafoldDBParser:
             self.result_dict = mp.Manager().dict()
             self.mp_structure_dict = mp.Manager().dict()
             self.all_done = mp.Manager().Event()
+            self.overview_lock = mp.Manager().Lock()
             self.pool = mp.Pool(np)
             for protein in proteins:
                 self.mp_structure_dict[protein] = self.structures[protein]
@@ -809,6 +930,7 @@ class AlphafoldDBParser:
                 self.overwrite,
                 self.img_size,
                 self.keep_tmp,
+                self.overview_lock,
             ]
             [self.pool.apply_async(worker_setup, args) for _ in range(np)]
             self.log.info(f"Runs in parallel with {np} processes.")
@@ -824,16 +946,13 @@ class AlphafoldDBParser:
 
         if self.parallel and self.pool_initialized:
             self.all_done.set()
-            np = os.cpu_count() - 1
             [self.mp_queue.put(None) for _ in range(np)]
-
+            self.log.debug("Waiting for all processes to finish...")
             self.mp_queue.join()
             self.pool.terminate()
             self.pool.join()
             for protein, structure in self.result_dict.items():
                 self.to_process.remove(protein)
-                self.structures[protein] = structure
-                self.write_scale(protein)
         self.log.info("=" * 30)
         self.log.info("All Batches, done!")
 
@@ -851,6 +970,8 @@ class AlphafoldDBParser:
                     continue
                 tmp.append(p)
             proteins = tmp
+            print
+        print("Queue filled")
 
 
 class AlphafoldDBParser_Worker:
@@ -863,6 +984,7 @@ class AlphafoldDBParser_Worker:
         overwrite,
         img_size,
         keep_tmp,
+        overview_lock,
     ):
         self.parser = AlphafoldDBParser(
             overwrite=overwrite, img_size=img_size, keep_tmp=keep_tmp
@@ -873,10 +995,11 @@ class AlphafoldDBParser_Worker:
         self.structure_dict = structure_dict
         self.log = self.parser.log
         self.parser.structures = self.structure_dict
+        self.overview_lock = overview_lock
 
     def run(self):
         class Args:
-            log_level = "INFO"
+            log_level = "DEBUG"
 
         self.parser.set_console_log_level(Args())
         while True:
@@ -900,7 +1023,9 @@ class AlphafoldDBParser_Worker:
             #     self.parser.structures[protein] = structure
 
             self.log.debug(f"Sampling PointClouds for: {protein}")
-            self.parser.sample_pcd(proteins, async_call=True)
+            self.parser.sample_pcd(
+                proteins, async_call=True, overview_lock=self.overview_lock
+            )
 
             # while not self.parser.structures[protein].existing_files[FT.ascii_file]:
             #     self.log.debug("Waiting for ASCII files...")
@@ -915,7 +1040,14 @@ class AlphafoldDBParser_Worker:
 
 
 def worker_setup(
-    queue, result_dict, all_done, structures, overwrite, img_size, keep_tmp
+    queue,
+    result_dict,
+    all_done,
+    structures,
+    overwrite,
+    img_size,
+    keep_tmp,
+    overview_lock,
 ):
     worker = AlphafoldDBParser_Worker(
         queue=queue,
@@ -925,5 +1057,6 @@ def worker_setup(
         overwrite=overwrite,
         img_size=img_size,
         keep_tmp=keep_tmp,
+        overview_lock=overview_lock,
     )
     worker.run()

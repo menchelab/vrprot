@@ -23,6 +23,8 @@ def main(
     subprocess: bool,
     processing: str,
     color: list,
+    overwrite: bool,
+    proteins: list,
     image=False,
 ):
     """Script used to combine multiple structure fractions into one single structure. Processing is not applied as this will lead to a memory overflow.
@@ -33,43 +35,41 @@ def main(
         subprocess (bool): If the script is called inside the chimerax command line, this will be set to False. This will prevent the script from exiting the ChimeraX session.
     """
     os.makedirs(target, exist_ok=True)
-    all_files = glob.glob(f"{directory}/*.pdb")
+    pattern = re.compile("|".join(proteins))
+    all_files = [
+        file for file in glob.glob(f"{directory}/*.pdb") if pattern.search(file)
+    ]
     bundle = chimerax_bundle.Bundle(session, directory, target)
     bundle.apply_processing(processing, color)
+    prefix = "mf"
     while len(all_files) > 1:
-        # Get first structure ID and version
-        first_structure = os.path.basename(all_files[0])
+        file = all_files.pop()
+        first_structure = os.path.basename(file)
         ver = re.findall(r"_v(\d+)\.pdb", first_structure)[0]
-        first_structure = re.findall(r"AF-(\w+)-", first_structure)[0]
+        protein = re.findall(r"AF-(\w+)-", first_structure)[0]
+        pattern = re.compile(protein)
+        fractions = [f for f in all_files if pattern.search(f)]
 
-        # Find all files with same structure ID
-        structures = []
-        for file in all_files:
-            tmp = os.path.basename(file)
-            tmp = re.findall(r"AF-(\w+)-", tmp)[0]
-            if tmp == first_structure:
-                structures.append(file)
-
-        if len(structures) == 1:
-            all_files.remove(structures[0])
+        # Single fraction
+        if len(fractions) == 1:
             continue
-        if (
-            os.path.exists(f"{target}/AF-{first_structure}-F1-model_v{ver}.glb")
-            and not overwrite
-        ):
-            for file in structures:
+
+        output = f"{target}/{prefix}_AF-{protein}-F1-model_v{ver}.glb"
+        # Output already exists and overwrite is False. Remove all files from the processing list
+        if os.path.exists(output) and not overwrite:
+            for file in fractions:
                 all_files.remove(file)
             continue
 
         # Run bundle command on all files
-        files = [os.path.basename(file) for file in structures]
+        files = [os.path.basename(file) for file in fractions]
         tmp_names = ["tmp_" + file for file in files]
         bundle.run(files, tmp_names)
 
         # Open and save file for first structure
         for file in tmp_names:
             run(session, f'open {target}/{file.replace("pdb","glb")}')
-        run(session, f"save {target}/AF-{first_structure}-F1-model_v{ver}.glb")
+        run(session, f"save {output}")
 
         # Remove all other files for this structure
         for file in tmp_names:
@@ -77,7 +77,7 @@ def main(
 
         # Close session and remove processed files from all_files
         run(session, "close")
-        for file in structures:
+        for file in fractions:
             all_files.remove(file)
             # os.makedirs(f"{directory}/{first_structure}", exist_ok=True)
             # shutil.move(file, f"{directory}/{first_structure}/{filename}")
@@ -114,6 +114,12 @@ if __name__ == "ChimeraX_sandbox_1":
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--proteins",
+        "-p",
+        help="The proteins that should be processed.",
+        type=str,
+    )
     # parser.add_argument("--colors","-c", help="The coloring that should be applied to the structures.", default=['red','green','blue'],nargs=3,type=str)
     args = parser.parse_args()
     directory = args.directory
@@ -121,7 +127,8 @@ if __name__ == "ChimeraX_sandbox_1":
     subprocess = args.subprocess
     processing = args.processing_mode
     overwrite = args.overwrite
+    proteins = args.proteins.split(",")
     # color = ast.literal_eval(args.colors)
     color = ["red", "green", "blue"]
     run(session, f"echo {subprocess}")
-    main(directory, target, subprocess, processing, color, overwrite)
+    main(directory, target, subprocess, processing, color, overwrite, proteins)

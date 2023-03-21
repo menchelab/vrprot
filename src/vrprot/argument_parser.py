@@ -61,7 +61,10 @@ def argument_parser(exec_name="main.py"):
         help="Path to the tar archive",
         action="store",
     )
-
+    combine_parser = subparsers.add_parser(
+        "combine",
+        help="Combine multi fraction protein structures into a single glb file. with ChimeraX and the desired coloring mode.",
+    )
     # Argument parser for clearing the processing_files directory
     clear = subparsers.add_parser(
         "clear",
@@ -237,6 +240,20 @@ def argument_parser(exec_name="main.py"):
         "-p",
         action="store_true",
         help="Defines whether to use parallel processing.",
+        default=False,
+    )
+    parser.add_argument(
+        "--process_multi_fraction",
+        "-pmf",
+        action="store_true",
+        help="Defines whether to also process multi fraction structures.",
+        default=False,
+    )
+    parser.add_argument(
+        "--scan_for_multifractions",
+        "-sfm",
+        action="store_true",
+        help="Defines whether to scan for multi fraction structures.",
         default=False,
     )
     if parser.parse_args().mode == None:
