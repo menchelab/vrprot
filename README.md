@@ -13,8 +13,8 @@ using ChimeraX and enables them to be analyzed on the [VRNetzer](https://github.
 
 ## USAGE OF THIS PROJECT
 
-The main purpose of this project is to serve as an easy to use pipeline to facilitate the processing of protein structures for presentation on the [VRNetzer](https://github.com/menchelab/VRNetzer). It is mainly used in the [ProteinStructureFetch Extension](TODO) of the [VRNetzer](https://github.com/menchelab/VRNetzer) ecosystem. For everyone who wants to analyze their own protein structures, with your desired highlighting and coloring, this project is the right place to start. A [ChimeraX](https://www.cgl.ucsf.edu/chimerax/download.html) installation is mandatory to use the full potential of this project.
-Without ChimeraX this software only provides a fetcher with which you can easily fetch pdb files from the [AlphaFold Database](https://alphafold.ebi.ac.uk/) as well as some converter functions.
+The main purpose of this project is to serve as an easy-to-use pipeline to facilitate the processing of protein structures for presentation on the [VRNetzer](https://github.com/menchelab/VRNetzer). It is mainly used in the [ProteinStructureFetch Extension](https://github.com/menchelab/ProteinStructureFetch) of the [VRNetzer](https://github.com/menchelab/VRNetzer) ecosystem. For everyone who wants to analyze their own protein structures, with your desired highlighting and coloring, this project is the right place to start. A [ChimeraX](https://www.cgl.ucsf.edu/chimerax/download.html) installation is mandatory to use the full potential of this project.
+Without ChimeraX this software only provides a fetcher with which you can easily fetch PDB files from the [AlphaFold Database](https://alphafold.ebi.ac.uk/) as well as some converter functions.
 
 ---
 
@@ -26,7 +26,7 @@ Without ChimeraX this software only provides a fetcher with which you can easily
 
 ### Installation
 
-Tested with Python 3.9+ .
+Tested with Python 3.9+.
 
 Install the package e.g. in a virtual environment:
 
@@ -37,7 +37,7 @@ Install the package e.g. in a virtual environment:
 - install requirements packages<br>
   `python3 -m pip install -r requirements.txt`
 
-- under mac you might have to install the following packages<br>
+- under macos, you might have to install the following packages<br>
   `brew install libomp`
 
 ### Process a single structure
@@ -46,8 +46,7 @@ Install the package e.g. in a virtual environment:
 example:<br>
 `./main.py fetch O95352`<br>
 This will fetch the structure of O95352 from the AlphaFold database and
-processes it using the pipeline. As coloring the secondary structures are
-colored in red, green and blue.
+processes it using the pipeline. The secondary structures are colored red, green and blue.
 
 ### Process multiple structures
 
@@ -55,8 +54,7 @@ colored in red, green and blue.
 example:<br>
 `./main.py fetch O95352,Q9Y5M8,Q9UKX5`<br>
 This will fetch the structure of O95352, Q9Y5M8 and Q9UKX5 from the AlphaFold
-database and processes them using the pipeline. As coloring the secondary structures are
-colored in red, green and blue.
+database and processes them using the pipeline. The secondary structures are colored red, green and blue.
 
 ### Process from a list of proteins
 
@@ -75,7 +73,7 @@ example:<br>
 This will process all structures in this directory. If there are only PDB files
 in this directory, for all of them the complete pipeline will be executed. It is also possible to
 have a directory containing intermediate states like PLY files.
-For these structures the process will start at the corresponding step.
+For these structures, the process will start at the corresponding step.
 
 ### Commands overview
 
@@ -167,19 +165,15 @@ It is possible to process the structures directly from these archives by using t
 ```
 
 Alternatively, with the `extract` command, the structures can be extracted from the archive and saved in a directory. The structures can then be processed with the `local` command:
-
-```
-./main.py extract <path_to_archive>
-```
-
-In both cases all PDB files contained in the archives are extracted to the default `pdbs` directory.
+In both cases, all PDB files contained in the archives are extracted to the default `pdbs` directory.
 From there, also the `local` command can be used to process the structures:
 
 ```
 ./main.py local <path_to_pdbs_dircetory>
 ```
 
-This whole process should be executed with caution as the processing time can be very long and the memory consumption can be very high. In extreme cases the program might shut down especially when treating larger structures with more than 50 fractions. Especially complex processing modes like `surface_electrostatic_coloring` can take a very long time to process.
+This process requires caution as it may take a long time to complete, consume a significant amount of memory, and use extensive local storage. In extreme cases, the program may shut down, particularly when dealing with larger structures containing more than 50 fractions or complex processing modes such as
+`surface_electrostatic_coloring`.
 
 ## Possible Color Modes
 
@@ -224,3 +218,15 @@ sphere_bFactor_coloring
 sphere_nucleotide_coloring
 
 ```
+
+# Preprocessed Human Proteome
+
+We have preprocessed the human proteome and made it available for download. The archive contains two coloring modes of all human proteins:
+
+- `cartoons_ss_coloring`(loop regions red, helices green, β-sheets blue)
+- `surface_electrostatic_coloring` (red negative, white neutral, blue positive electrostatic
+  potential)
+
+The archive can be downloaded at:
+
+https://ucloud.univie.ac.at/index.php/s/Ozz3XXHyZ6HSGKP
